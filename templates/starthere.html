@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplyAI - Start Here</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center p-8">
+  <div class="max-w-4xl w-full">
+    <!-- Main Card -->
+    <div class="bg-white rounded-2xl shadow-2xl p-12 mb-6">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-4">
+          <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+        </div>
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">Welcome to ComplyAI</h1>
+        <p class="text-xl text-gray-600">Compliance Document Tracking Dashboard</p>
+      </div>
+
+      <!-- Protocol Check -->
+      <div id="protocolCheck" class="mb-8 p-6 rounded-xl"></div>
+
+      <!-- Quick Start Options -->
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <!-- Test & Debug -->
+        <a href="TEST-INSTRUCTIONS.html" class="block p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg group">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="bug" class="w-6 h-6 text-white"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900">Test & Debug</h3>
+          </div>
+          <p class="text-gray-600 text-sm mb-3">Run diagnostics, check files, verify localStorage, and test navigation.</p>
+          <div class="flex items-center text-blue-600 font-medium text-sm">
+            <span>Start Here First</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+          </div>
+        </a>
+
+        <!-- Main Dashboard -->
+        <a href="index.html" class="block p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg group">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="layout-dashboard" class="w-6 h-6 text-white"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900">Dashboard</h3>
+          </div>
+          <p class="text-gray-600 text-sm mb-3">View compliance stats, recent activity, and critical documents.</p>
+          <div class="flex items-center text-purple-600 font-medium text-sm">
+            <span>Open Dashboard</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+          </div>
+        </a>
+
+        <!-- Upload Document -->
+        <a href="upload.html" class="block p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 hover:border-green-400 transition-all hover:shadow-lg group">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="upload" class="w-6 h-6 text-white"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900">Upload Document</h3>
+          </div>
+          <p class="text-gray-600 text-sm mb-3">Upload PDF or Word documents for compliance review.</p>
+          <div class="flex items-center text-green-600 font-medium text-sm">
+            <span>Upload Now</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+          </div>
+        </a>
+
+        <!-- View Recent -->
+        <button onclick="viewLastDocument()" class="block p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border-2 border-orange-200 hover:border-orange-400 transition-all hover:shadow-lg group text-left w-full">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="file-search" class="w-6 h-6 text-white"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900">View Last Document</h3>
+          </div>
+          <p class="text-gray-600 text-sm mb-3">Open the most recently uploaded document for review.</p>
+          <div class="flex items-center text-orange-600 font-medium text-sm">
+            <span id="lastDocStatus">Check Status</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+          </div>
+        </button>
+      </div>
+
+      <!-- Features List -->
+      <div class="grid md:grid-cols-3 gap-4 mb-8">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 text-sm">No Installation</h4>
+            <p class="text-xs text-gray-600">Works in any modern browser</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 text-sm">100% Private</h4>
+            <p class="text-xs text-gray-600">All data stored locally</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 text-sm">Full Features</h4>
+            <p class="text-xs text-gray-600">Upload, review, edit, undo/redo</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 text-sm">PDF Viewer</h4>
+            <p class="text-xs text-gray-600">View PDFs in browser</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 text-sm">NIST Frameworks</h4>
+            <p class="text-xs text-gray-600">CSF, 800-53, 800-171, etc.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 text-sm">Compliance Tracking</h4>
+            <p class="text-xs text-gray-600">Gaps, risks, recommendations</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Run Card -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+          <i data-lucide="info" class="w-6 h-6 text-yellow-600"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900">How to Run ComplyAI</h2>
+      </div>
+
+      <div class="space-y-4">
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-l-4 border-blue-500">
+          <h3 class="font-semibold text-gray-900 mb-2">✅ Best: Python HTTP Server</h3>
+          <pre class="bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">python -m http.server 8000</pre>
+          <p class="text-sm text-gray-600 mt-2">Then open: <code class="bg-white px-2 py-1 rounded">http://localhost:8000</code></p>
+        </div>
+
+        <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border-l-4 border-purple-500">
+          <h3 class="font-semibold text-gray-900 mb-2">✅ Alternative: VS Code Live Server</h3>
+          <p class="text-sm text-gray-600">Install "Live Server" extension → Right-click HTML file → Open with Live Server</p>
+        </div>
+
+        <div class="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-4 border-l-4 border-red-500">
+          <h3 class="font-semibold text-gray-900 mb-2">❌ Don't: Open Files Directly</h3>
+          <p class="text-sm text-gray-600">Do NOT double-click HTML files or use file:// protocol. Navigation and localStorage won't work!</p>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-6 border-t border-gray-200">
+        <p class="text-sm text-gray-600 text-center">
+          Need help? Check 
+          <a href="README-QUICKSTART.md" class="text-purple-600 font-medium hover:underline" target="_blank">README-QUICKSTART.md</a>
+          for detailed instructions.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    /* ---- Styled Alert (matches login aesthetic) ---- */
+    function showStyledAlert(message, title = 'Notice') {
+      const existing = document.getElementById('styled-alert-modal');
+      if (existing) existing.remove();
+      const modal = document.createElement('div');
+      modal.id = 'styled-alert-modal';
+      modal.className = 'fixed inset-0 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white border border-purple-200 rounded-2xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center relative z-10">
+          <div class="text-purple-600 text-2xl font-bold mb-2">${title}</div>
+          <div class="text-gray-700 text-sm mb-6 text-center">${message}</div>
+          <button onclick="document.getElementById('styled-alert-modal').remove();" class="px-6 py-2 bg-purple-600 text-white rounded-xl font-semibold shadow hover:bg-purple-700 transition">OK</button>
+        </div>
+        <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // Check protocol and show appropriate message
+    window.addEventListener('DOMContentLoaded', function() {
+      const protocolCheck = document.getElementById('protocolCheck');
+      const protocol = window.location.protocol;
+
+      if (protocol === 'file:') {
+        protocolCheck.innerHTML = `
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-bold text-red-900 text-lg mb-2">⚠️ WARNING: Not Using Web Server!</h3>
+              <p class="text-red-700 text-sm mb-3">
+                You opened this file directly (file:// protocol). The application will NOT work correctly!
+                Navigation between pages will fail and localStorage won't function properly.
+              </p>
+              <div class="bg-white rounded-lg p-4 border border-red-200">
+                <p class="font-semibold text-gray-900 text-sm mb-2">Quick Fix:</p>
+                <ol class="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+                  <li>Open Terminal/Command Prompt</li>
+                  <li>Navigate to this folder</li>
+                  <li>Run: <code class="bg-gray-100 px-2 py-1 rounded">python -m http.server 8000</code></li>
+                  <li>Open: <code class="bg-gray-100 px-2 py-1 rounded">http://localhost:8000</code></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (protocol === 'http:' || protocol === 'https:') {
+        protocolCheck.innerHTML = `
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-bold text-green-900 text-lg mb-2">✅ Perfect! Using Web Server</h3>
+              <p class="text-green-700 text-sm">
+                You're using <strong>${protocol}</strong> protocol. All features will work correctly!
+                <br/>Current URL: <code class="bg-green-50 px-2 py-1 rounded text-xs">${window.location.href}</code>
+              </p>
+            </div>
+          </div>
+        `;
+      }
+
+      // Check for last document
+      const lastDoc = localStorage.getItem('currentDocument');
+      if (lastDoc) {
+        try {
+          const doc = JSON.parse(lastDoc);
+          document.getElementById('lastDocStatus').textContent = doc.documentTitle || 'View Document';
+        } catch (e) {
+          document.getElementById('lastDocStatus').textContent = 'No document found';
+        }
+      } else {
+        document.getElementById('lastDocStatus').textContent = 'No document found';
+      }
+
+      lucide.createIcons();
+    });
+
+    function viewLastDocument() {
+      const lastDoc = localStorage.getItem('currentDocument');
+      if (lastDoc) {
+        window.location.href = 'compliance-results.html';
+      } else {
+        showStyledAlert('No document found. Please upload a document first!', 'Notice');
+        window.location.href = 'upload.html';
+      }
+    }
+  </script>
+</body>
+</html>

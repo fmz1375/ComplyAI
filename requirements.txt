@@ -1,0 +1,31 @@
+# Python dependencies
+flask
+flask-cors
+flask-socketio
+python-socketio
+python-engineio
+eventlet
+langchain
+langchain-text-splitters
+langchain-community
+langchain-ollama
+faiss-cpu
+pypdf
+sentence-transformers
+numpy
+rank-bm25
+pysbd
+pydantic
+beautifulsoup4
+reportlab
+python-docx
+matplotlib
+pandas
+auth0-python
+python-jose[cryptography]
+
+# Ollama models setup
+# After installing Python dependencies, pull required Ollama models:
+# ollama pull qwen2.5:3b
+# ollama pull qwen3-embedding
+# ollama pull saki007ster/CybersecurityRiskAnalyst

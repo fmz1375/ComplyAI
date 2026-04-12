@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplyAI - Setup & Installation Guide</title>
+  <style>
+    @page {
+      margin: 1in;
+      size: letter;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #1a1a2e;
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 40px;
+      background: white;
+    }
+    
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #6D28D9;
+      padding-bottom: 30px;
+      margin-bottom: 40px;
+    }
+    
+    .logo {
+      font-size: 42px;
+      font-weight: 800;
+      color: #6D28D9;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      color: #64748b;
+      margin-bottom: 5px;
+    }
+    
+    .document-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 20px;
+    }
+    
+    h1 {
+      color: #6D28D9;
+      font-size: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+      margin-top: 40px;
+    }
+    
+    h2 {
+      color: #334155;
+      font-size: 20px;
+      margin-top: 30px;
+    }
+    
+    h3 {
+      color: #475569;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    
+    .step-number {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      background: #6D28D9;
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .step {
+      margin: 25px 0;
+      padding: 20px;
+      background: #f8fafc;
+      border-left: 4px solid #6D28D9;
+      border-radius: 0 8px 8px 0;
+    }
+    
+    .step-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: #1e293b;
+      margin-bottom: 10px;
+    }
+    
+    code {
+      background: #1e293b;
+      color: #22d3ee;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+    }
+    
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    pre code {
+      background: transparent;
+      color: #e2e8f0;
+      padding: 0;
+    }
+    
+    .command {
+      color: #22d3ee;
+    }
+    
+    .comment {
+      color: #64748b;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    
+    th {
+      background: #6D28D9;
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+    
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+    
+    .warning-title {
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 5px;
+    }
+    
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+    
+    .info-title {
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 5px;
+    }
+    
+    .success {
+      background: #dcfce7;
+      border-left: 4px solid #22c55e;
+      padding: 15px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+    
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .checklist li {
+      padding: 8px 0;
+      padding-left: 30px;
+      position: relative;
+    }
+    
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: #6D28D9;
+      font-size: 18px;
+    }
+    
+    .footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 2px solid #e2e8f0;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+    }
+    
+    .page-break {
+      page-break-before: always;
+    }
+    
+    @media print {
+      body {
+        padding: 0;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="header">
+    <div class="logo">ComplyAI</div>
+    <div class="subtitle">AI-Powered NIST CSF Cybersecurity Compliance Platform</div>
+    <div class="document-title">Setup & Installation Guide</div>
+    <p style="color: #94a3b8; margin-top: 15px;">Version 1.0 | April 2026</p>
+  </div>
+
+  <!-- PREREQUISITES -->
+  <h1>1. Prerequisites</h1>
+  
+  <p>Before installing ComplyAI, ensure you have the following software installed on your system:</p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Software</th>
+        <th>Version</th>
+        <th>Download Link</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Python</strong></td>
+        <td>3.10 or higher</td>
+        <td>https://www.python.org/downloads/</td>
+      </tr>
+      <tr>
+        <td><strong>Ollama</strong></td>
+        <td>Latest</td>
+        <td>https://ollama.com/download</td>
+      </tr>
+      <tr>
+        <td><strong>Git</strong></td>
+        <td>Latest</td>
+        <td>https://git-scm.com/downloads</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info">
+    <div class="info-title">ℹ️ Note</div>
+    Ollama is required for AI-powered compliance analysis. Make sure it's running before starting ComplyAI.
+  </div>
+
+  <!-- INSTALLATION STEPS -->
+  <h1>2. Installation Steps</h1>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">1</span> Clone the Repository</div>
+    <p>Open a terminal (Command Prompt, PowerShell, or Terminal) and run:</p>
+    <pre><code>git clone https://github.com/YOUR_USERNAME/ComplyAI.git
+cd ComplyAI</code></pre>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">2</span> Create a Virtual Environment</div>
+    <p><strong>Windows:</strong></p>
+    <pre><code>python -m venv .venv
+.venv\Scripts\activate</code></pre>
+    <p><strong>macOS / Linux:</strong></p>
+    <pre><code>python3 -m venv .venv
+source .venv/bin/activate</code></pre>
+    <div class="info">
+      <div class="info-title">ℹ️ Tip</div>
+      You should see <code>(.venv)</code> at the beginning of your terminal prompt when the virtual environment is active.
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">3</span> Install Python Dependencies</div>
+    <pre><code>pip install -r requirements.txt</code></pre>
+    <p>This will install Flask, SQLAlchemy, FAISS, and all other required packages.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">4</span> Pull Required AI Models</div>
+    <p>Open a <strong>new terminal window</strong> and run these commands:</p>
+    <pre><code>ollama pull qwen2.5:3b
+ollama pull saki007ster/CybersecurityRiskAnalyst</code></pre>
+    <div class="warning">
+      <div class="warning-title">⚠️ Important</div>
+      The model downloads may take several minutes depending on your internet speed. Each model is approximately 2-4 GB.
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">5</span> Start the Application</div>
+    <pre><code>python appOne.py</code></pre>
+    <p>The server will start on port 5005.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">6</span> Access the Application</div>
+    <p>Open your web browser and navigate to:</p>
+    <pre><code>http://127.0.0.1:5005</code></pre>
+    <div class="success">
+      <strong>✅ Success!</strong> You should see the ComplyAI login page.
+    </div>
+  </div>
+
+  <!-- LOGIN CREDENTIALS -->
+  <div class="page-break"></div>
+  <h1>3. Default Login Credentials</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Email</th>
+        <th>Password</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Admin</strong></td>
+        <td>admin@example.com</td>
+        <td>admin123</td>
+      </tr>
+      <tr>
+        <td><strong>User</strong></td>
+        <td>bob@example.com</td>
+        <td>bob123</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Admin vs User Capabilities</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Admin</th>
+        <th>User</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Upload & manage own documents</td>
+        <td>✅</td>
+        <td>✅</td>
+      </tr>
+      <tr>
+        <td>Run compliance analysis</td>
+        <td>✅</td>
+        <td>✅</td>
+      </tr>
+      <tr>
+        <td>Generate PDF/Word reports</td>
+        <td>✅</td>
+        <td>✅</td>
+      </tr>
+      <tr>
+        <td>Complete NIST CSF questionnaires</td>
+        <td>✅</td>
+        <td>✅</td>
+      </tr>
+      <tr>
+        <td>Share documents with others</td>
+        <td>✅</td>
+        <td>✅</td>
+      </tr>
+      <tr>
+        <td>View ALL users' documents</td>
+        <td>✅</td>
+        <td>❌</td>
+      </tr>
+      <tr>
+        <td>Review & approve documents</td>
+        <td>✅</td>
+        <td>❌</td>
+      </tr>
+      <tr>
+        <td>Manage users (add/delete)</td>
+        <td>✅</td>
+        <td>❌</td>
+      </tr>
+      <tr>
+        <td>Framework management</td>
+        <td>✅</td>
+        <td>❌</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- KEY FEATURES -->
+  <h1>4. Key Features to Test</h1>
+
+  <h2>4.1 Upload a Policy Document</h2>
+  <ol>
+    <li>Navigate to <strong>"Upload Document"</strong> from the sidebar</li>
+    <li>Select a PDF security policy document</li>
+    <li>Fill in metadata: document name, category, priority, and due date</li>
+    <li>The system extracts text and prepares for AI analysis</li>
+  </ol>
+
+  <h2>4.2 Run Compliance Analysis</h2>
+  <ol>
+    <li>After upload, click <strong>"Analyze"</strong> to start AI-powered gap detection</li>
+    <li>Watch real-time progress as the system processes your document</li>
+    <li>Uses Advanced RAG with FAISS + BM25 hybrid retrieval</li>
+    <li>Review identified gaps with severity ratings (Critical, High, Medium, Low)</li>
+  </ol>
+
+  <h2>4.3 Complete NIST CSF Questionnaire</h2>
+  <ol>
+    <li>Access from the document analysis page or dashboard</li>
+    <li>Choose NIST CSF functions: Govern, Identify, Protect, Detect, Respond, Recover</li>
+    <li>Answer structured questions about your security posture</li>
+    <li>Progress is saved automatically</li>
+  </ol>
+
+  <h2>4.4 Generate Reports</h2>
+  <ol>
+    <li>After completing analysis, generate comprehensive reports</li>
+    <li>Choose export format: <strong>PDF</strong> or <strong>Word (DOCX)</strong></li>
+    <li>Reports include: executive summary, compliance gaps, risk assessment, recommendations</li>
+    <li>Edit report content before finalizing</li>
+  </ol>
+
+  <h2>4.5 Risk Heat Map</h2>
+  <ol>
+    <li>Access from the document viewer or report page</li>
+    <li>Complete the Risk Appetite questionnaire</li>
+    <li>View 5×5 matrix showing likelihood vs. impact</li>
+    <li>Download heat map as PNG for presentations</li>
+  </ol>
+
+  <!-- TROUBLESHOOTING -->
+  <div class="page-break"></div>
+  <h1>5. Troubleshooting</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Problem</th>
+        <th>Solution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"Ollama not available" warning</td>
+        <td>Make sure Ollama is running. Open a terminal and run: <code>ollama serve</code></td>
+      </tr>
+      <tr>
+        <td>Port 5005 already in use</td>
+        <td>Kill existing process or change port in <code>appOne.py</code></td>
+      </tr>
+      <tr>
+        <td>Missing dependencies error</td>
+        <td>Run <code>pip install -r requirements.txt</code> again</td>
+      </tr>
+      <tr>
+        <td>Model not found error</td>
+        <td>Run <code>ollama pull qwen2.5:3b</code> to download the model</td>
+      </tr>
+      <tr>
+        <td>Database errors</td>
+        <td>Delete <code>project.db</code> and restart the app to recreate</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PROJECT STRUCTURE -->
+  <h1>6. Project Structure</h1>
+
+  <pre><code>ComplyAI/
+├── appOne.py              # Main Flask application (entry point)
+├── requirements.txt       # Python dependencies
+├── project.db            # SQLite database (auto-created)
+├── templates/            # HTML templates (Jinja2)
+├── services/             # Business logic services
+│   ├── llm_service.py           # LLM integration
+│   ├── questionnaire_engine.py  # NIST questionnaire logic
+│   ├── report_exporter.py       # PDF/Word export
+│   └── risk_heatmap_service.py  # Risk visualization
+├── rag/                  # RAG (Retrieval-Augmented Generation)
+│   └── advanced_rag.py          # Hybrid retrieval + gap analysis
+├── models/               # Pydantic data models
+├── faiss_index/          # Vector store indexes
+├── uploads/              # Uploaded documents
+└── exports/              # Generated reports</code></pre>
+
+  <!-- QUICK REFERENCE -->
+  <h1>7. Quick Reference Commands</h1>
+
+  <pre><code><span class="comment"># Clone repository</span>
+<span class="command">git clone https://github.com/YOUR_USERNAME/ComplyAI.git</span>
+
+<span class="comment"># Create virtual environment</span>
+<span class="command">python -m venv .venv</span>
+
+<span class="comment"># Activate virtual environment (Windows)</span>
+<span class="command">.venv\Scripts\activate</span>
+
+<span class="comment"># Install dependencies</span>
+<span class="command">pip install -r requirements.txt</span>
+
+<span class="comment"># Pull AI models</span>
+<span class="command">ollama pull qwen2.5:3b</span>
+<span class="command">ollama pull saki007ster/CybersecurityRiskAnalyst</span>
+
+<span class="comment"># Start application</span>
+<span class="command">python appOne.py</span>
+
+<span class="comment"># Access in browser</span>
+<span class="command">http://127.0.0.1:5005</span></code></pre>
+
+  <!-- CHECKLIST -->
+  <h1>8. Setup Checklist</h1>
+  
+  <ul class="checklist">
+    <li>Python 3.10+ installed</li>
+    <li>Git installed</li>
+    <li>Ollama installed and running</li>
+    <li>Repository cloned</li>
+    <li>Virtual environment created and activated</li>
+    <li>Dependencies installed via pip</li>
+    <li>AI models downloaded (qwen2.5:3b, CybersecurityRiskAnalyst)</li>
+    <li>Application started with <code>python appOne.py</code></li>
+    <li>Browser opened to http://127.0.0.1:5005</li>
+    <li>Successfully logged in</li>
+  </ul>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p><strong>ComplyAI</strong> - AI-Powered NIST CSF Cybersecurity Compliance Platform</p>
+    <p>For questions or support, please contact the development team.</p>
+    <p style="margin-top: 10px; color: #94a3b8;">Document generated April 2026</p>
+  </div>
+
+</body>
+</html>

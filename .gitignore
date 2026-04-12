@@ -1,0 +1,16 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+
+# Local virtual environments
+.venv/
+.venv-1/
+venv/
+
+# IDE/editor state
+.idea/
+.vscode/
+
+# Local runtime artifacts
+exports/
+uploads/framework_tmp/

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #f3f4f6;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        #viewer-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #viewer-status {
+            flex: 0 0 auto;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #4b5563;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        #viewerContainer {
+            flex: 1 1 auto;
+            overflow: auto;
+            padding: 16px;
+            background: #eef2f7;
+        }
+
+        #pages {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .page-shell {
+            position: relative;
+            background: #ffffff;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .page-shell.active-match {
+            outline: 3px solid #8b5cf6;
+            box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.18);
+        }
+
+        .page-canvas {
+            display: block;
+        }
+
+        .textLayer {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            opacity: 0.28;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .textLayer span,
+        .textLayer br {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            transform-origin: 0 0;
+        }
+
+        .textLayer .match-highlight {
+            background: rgba(250, 204, 21, 0.65);
+            color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer-shell">
+        <div id="viewer-status">PDF viewer ready.</div>
+        <div id="viewerContainer">
+            <div id="pages"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs";
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+
+        const statusEl = document.getElementById("viewer-status");
+        const viewerContainer = document.getElementById("viewerContainer");
+        const pagesEl = document.getElementById("pages");
+
+        let currentPdfUrl = "";
+        let currentPage = 1;
+        let currentQuery = "";
+        let currentDocument = null;
+        let renderedPages = [];
+        let renderToken = 0;
+
+        function setStatus(message) {
+            statusEl.textContent = message;
+        }
+
+        function normalizeSearchText(text) {
+            return String(text || "")
+                .replace(/\s+/g, " ")
+                .replace(/[\u2018\u2019]/g, "'")
+                .replace(/[\u201C\u201D]/g, '"')
+                .trim();
+        }
+
+        function clearMatchState() {
+            renderedPages.forEach((entry) => {
+                entry.shell.classList.remove("active-match");
+                entry.textLayer.querySelectorAll(".match-highlight").forEach((span) => {
+                    span.classList.remove("match-highlight");
+                });
+            });
+        }
+
+        function buildSearchTerms(query) {
+            const normalized = normalizeSearchText(query).toLowerCase();
+            if (!normalized) {
+                return [];
+            }
+
+            const words = normalized
+                .split(" ")
+                .map((word) => word.trim())
+                .filter((word, index, arr) => word.length >= 4 && arr.indexOf(word) === index);
+
+            if (words.length >= 2) {
+                return words.slice(0, 6);
+            }
+
+            return [normalized.slice(0, 48)];
+        }
+
+        function locateMatch(pageNumber, query) {
+            clearMatchState();
+
+            const normalizedQuery = normalizeSearchText(query);
+            const terms = buildSearchTerms(normalizedQuery);
+            const targetPage = Number(pageNumber) > 0 ? Number(pageNumber) : 1;
+            const orderedPages = [
+                ...renderedPages.filter((entry) => entry.pageNumber === targetPage),
+                ...renderedPages.filter((entry) => entry.pageNumber !== targetPage),
+            ];
+
+            let matchedEntry = null;
+
+            for (const entry of orderedPages) {
+                const pageText = entry.textContent.toLowerCase();
+                const hasPageMatch = !terms.length || terms.some((term) => pageText.includes(term));
+
+                if (!hasPageMatch && entry.pageNumber !== targetPage) {
+                    continue;
+                }
+
+                entry.shell.classList.add("active-match");
+
+                if (terms.length) {
+                    entry.textLayer.querySelectorAll("span").forEach((span) => {
+                        const spanText = normalizeSearchText(span.textContent).toLowerCase();
+                        if (terms.some((term) => spanText && (spanText.includes(term) || term.includes(spanText)))) {
+                            span.classList.add("match-highlight");
+                        }
+                    });
+                }
+
+                matchedEntry = entry;
+                break;
+            }
+
+            const fallbackEntry = renderedPages.find((entry) => entry.pageNumber === targetPage) || renderedPages[0];
+            const scrolledEntry = matchedEntry || fallbackEntry;
+
+            if (scrolledEntry) {
+                scrolledEntry.shell.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+
+            if (matchedEntry && normalizedQuery) {
+                setStatus(`Showing page ${matchedEntry.pageNumber} and highlighting probable source text.`);
+            } else if (scrolledEntry) {
+                setStatus(`Showing page ${scrolledEntry.pageNumber}. Exact text match was not found.`);
+            } else {
+                setStatus("PDF rendered, but no pages are available to scroll to.");
+            }
+        }
+
+        async function renderPage(pdfDocument, pageNumber, viewport) {
+            const page = await pdfDocument.getPage(pageNumber);
+            const pageViewport = page.getViewport({ scale: viewport.scale });
+
+            const shell = document.createElement("div");
+            shell.className = "page-shell";
+            shell.dataset.pageNumber = String(pageNumber);
+            shell.style.width = `${pageViewport.width}px`;
+            shell.style.height = `${pageViewport.height}px`;
+
+            const canvas = document.createElement("canvas");
+            canvas.className = "page-canvas";
+            canvas.width = pageViewport.width;
+            canvas.height = pageViewport.height;
+            canvas.style.width = `${pageViewport.width}px`;
+            canvas.style.height = `${pageViewport.height}px`;
+
+            const textLayer = document.createElement("div");
+            textLayer.className = "textLayer";
+            textLayer.style.width = `${pageViewport.width}px`;
+            textLayer.style.height = `${pageViewport.height}px`;
+
+            shell.appendChild(canvas);
+            shell.appendChild(textLayer);
+            pagesEl.appendChild(shell);
+
+            await page.render({
+                canvasContext: canvas.getContext("2d"),
+                viewport: pageViewport,
+            }).promise;
+
+            const textContent = await page.getTextContent();
+            const combinedText = textContent.items.map((item) => item.str || "").join(" ");
+
+            textContent.items.forEach((item) => {
+                if (!item.str) {
+                    return;
+                }
+
+                const span = document.createElement("span");
+                span.textContent = item.str;
+
+                const tx = pdfjsLib.Util.transform(pageViewport.transform, item.transform);
+                const fontHeight = Math.hypot(tx[2], tx[3]);
+                const angle = Math.atan2(tx[1], tx[0]);
+
+                span.style.left = `${tx[4]}px`;
+                span.style.top = `${tx[5] - fontHeight}px`;
+                span.style.fontSize = `${fontHeight}px`;
+                span.style.fontFamily = item.fontName || "sans-serif";
+                span.style.transform = `rotate(${angle}rad)`;
+
+                textLayer.appendChild(span);
+            });
+
+            renderedPages.push({
+                pageNumber,
+                shell,
+                textLayer,
+                textContent: combinedText,
+            });
+        }
+
+        async function openDocument(pdfUrl, page = 1, query = "") {
+            if (!pdfUrl) {
+                setStatus("No PDF selected.");
+                return;
+            }
+
+            const thisRenderToken = ++renderToken;
+            currentPdfUrl = pdfUrl;
+            currentPage = page;
+            currentQuery = query;
+            renderedPages = [];
+            pagesEl.innerHTML = "";
+            viewerContainer.scrollTop = 0;
+
+            try {
+                setStatus("Loading PDF...");
+                const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                currentDocument = await loadingTask.promise;
+
+                const firstPage = await currentDocument.getPage(1);
+                const baseViewport = firstPage.getViewport({ scale: 1 });
+                const availableWidth = Math.max(640, viewerContainer.clientWidth - 48);
+                const scale = Math.min(1.5, availableWidth / baseViewport.width);
+
+                if (thisRenderToken !== renderToken) {
+                    return;
+                }
+
+                for (let pageNumber = 1; pageNumber <= currentDocument.numPages; pageNumber += 1) {
+                    if (thisRenderToken !== renderToken) {
+                        return;
+                    }
+                    await renderPage(currentDocument, pageNumber, { scale });
+                }
+
+                setStatus(`PDF loaded with ${currentDocument.numPages} page(s).`);
+                locateMatch(page, query);
+            } catch (error) {
+                console.error("Failed to render PDF", error);
+                setStatus(`Failed to load PDF: ${error.message || error}`);
+            }
+        }
+
+        window.addEventListener("message", (event) => {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+
+            const data = event.data || {};
+            if (data.type === "open-document") {
+                openDocument(data.pdfUrl, Number(data.page || 1), data.query || "");
+                return;
+            }
+
+            if (data.type === "locate-source") {
+                const pdfUrl = data.pdfUrl || currentPdfUrl;
+                const page = Number(data.page || currentPage || 1);
+                const query = data.query || currentQuery || "";
+
+                if (!currentDocument || pdfUrl !== currentPdfUrl) {
+                    openDocument(pdfUrl, page, query);
+                    return;
+                }
+
+                currentPage = page;
+                currentQuery = query;
+                locateMatch(page, query);
+            }
+        });
+
+        window.parent.postMessage({ type: "pdf-viewer-ready" }, window.location.origin);
+    </script>
+</body>
+</html>

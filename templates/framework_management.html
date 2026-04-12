@@ -1,0 +1,705 @@
+<!DOCTYPE html><!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</html></body></script>fetchVersions();fetchAudit();fetchStatus();setInterval(() => { fetchStatus(); fetchAudit(); fetchVersions(); }, 4000);});    }        btn.innerText = 'Upload & Rebuild';        btn.disabled = false;    } finally {        document.getElementById('result').innerText = String(err);    } catch(err) {        await fetchVersions();        await fetchAudit();        await fetchStatus();        document.getElementById('result').innerText = JSON.stringify(data);        const data = await res.json();        const res = await fetch('/api/framework/upload', { method: 'POST', body: fd });    try {    btn.innerText = 'Starting...';    btn.disabled = true;    const btn = document.getElementById('uploadBtn');    const fd = new FormData(form);    const form = e.currentTarget;    e.preventDefault();document.getElementById('uploadForm').addEventListener('submit', async function(e){}    } catch(e) { console.warn(e); }        }).join('');            </div>`;                <div class="text-xs text-gray-500 mt-1">${v.created_at || ''} • ${v.chunk_count || 0} chunks • ${v.source_type || 'unknown source'}</div>                </div>                    <div>${badge}${activateBtn}</div>                    <div><strong>${v.framework_name || 'Framework'}</strong> v${v.version_label || 'n/a'} <span class="text-xs text-gray-500">(${v.version_id})</span></div>                <div class="flex items-center justify-between gap-2">            return `<div class="mb-3 pb-3 border-b border-gray-100">                : `<button class="ml-2 px-2 py-1 rounded bg-purple-600 text-white text-xs" onclick="activateVersion('${v.version_id}')">Activate</button>`;                ? ''            const activateBtn = isActive                : '<span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-semibold">Inactive</span>';                ? '<span class="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold">Active</span>'            const badge = isActive            const isActive = (v.version_id === active) || Number(v.is_active) === 1;        el.innerHTML = versions.map(v => {        }            return;            el.innerHTML = '<div class="text-gray-500">No framework versions found.</div>';        if(!versions.length){        const el = document.getElementById('versionList');        const active = data.active_version_id;        const versions = data.versions || [];        const data = await r.json();        if(!r.ok) return;        const r = await fetch('/api/framework/versions');    try {async function fetchVersions(){}    }        document.getElementById('result').innerText = String(e);    } catch(e) {        await fetchVersions();        await fetchAudit();        await fetchStatus();        document.getElementById('result').innerText = `Activated version: ${versionId}`;        }            return;            document.getElementById('result').innerText = data.error || 'Failed to activate version';        if(!r.ok){        const data = await r.json();        });            body: JSON.stringify({ version_id: versionId })            headers: { 'Content-Type': 'application/json' },            method: 'POST',        const r = await fetch('/api/framework/activate', {    try {async function activateVersion(versionId){}    } catch(e) { console.warn(e); }        el.innerHTML = rows.map(r => `<div class="mb-2"><div class="text-xs text-gray-500">${r.created_at} — <strong>${r.event_type}</strong></div><div>${r.message}</div></div>`).join('');        const el = document.getElementById('auditLog');        const rows = await r.json();        if(!r.ok) return;        const r = await fetch('/api/framework/audit_logs');    try {async function fetchAudit(){}    } catch(e) { console.warn(e); }        }            badge.className = 'inline-block px-3 py-1 rounded-full text-sm font-medium ' + (cfg.status==='ready' ? 'bg-green-100 text-green-800' : (cfg.status==='processing' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'));            badge.innerText = cfg.status || '';        if (badge) {        const badge = document.getElementById('statusBadge');        if (lu) lu.innerText = cfg.last_updated_at || '';        const lu = document.getElementById('lastUpdated');        const cfg = await r.json();        if(!r.ok) return;        const r = await fetch('/api/framework/status');    try {async function fetchStatus(){function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('collapsed'); }<script></div>    </div>        </main>            </div>                </div>                    </div>                        </div>                            <div id="auditLog" class="text-sm text-gray-600 max-h-40 overflow-y-auto border border-gray-100 p-3 rounded"></div>                            <h3 class="text-sm font-semibold text-gray-700 mb-2">Activity Log</h3>                        <div class="mt-6">                        </div>                            <div id="versionList" class="text-sm text-gray-700 max-h-64 overflow-y-auto border border-gray-100 p-3 rounded"></div>                            <h3 class="text-sm font-semibold text-gray-700 mb-2">Framework Versions</h3>                        <div class="mt-6">                        <div id="result" class="mt-4 text-sm text-gray-700"></div>                        </form>                            </div>                                <button id="uploadBtn" type="submit" class="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold">Upload & Rebuild</button>                            <div class="md:col-span-2 text-right">                            </div>                                <textarea name="source_json" rows="5" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full font-mono text-sm" placeholder='{"controls":[{"id":"ID.AM-1","title":"...","description":"..."}]}'></textarea>                                <label class="text-sm text-gray-600">Source JSON (optional)</label>                            <div class="md:col-span-2">                            </div>                                <input name="source_url" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" placeholder="https://...">                                <label class="text-sm text-gray-600">Source URL (PDF/JSON)</label>                            <div>                            </div>                                <input type="file" name="files" multiple class="mt-1 w-full" accept="application/pdf">                                <label class="text-sm text-gray-600">Files (PDF)</label>                            <div>                            </div>                                <textarea name="description" rows="2" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" placeholder="Describe this framework version"></textarea>                                <label class="text-sm text-gray-600">Description</label>                            <div class="md:col-span-2">                            </div>                                <input name="embedding_model" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="qwen3-embedding">                                <label class="text-sm text-gray-600">Embedding model</label>                            <div>                            </div>                                <input name="version_id" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" placeholder="e.g. nist-csf-2-1">                                <label class="text-sm text-gray-600">Version ID</label>                            <div>                            </div>                                <input name="version" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="latest">                                <label class="text-sm text-gray-600">Version</label>                            <div>                            </div>                                <input name="name" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="NIST CSF">                                <label class="text-sm text-gray-600">Framework name</label>                            <div>                        <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" enctype="multipart/form-data">                        <div class="text-red-600 font-semibold mb-4">Warning: Activating or uploading a framework affects future analyses.</div>                        {% endif %}                        <div class="text-gray-600">No active framework configured.</div>                        {% else %}                        <div class="text-sm text-gray-500 mb-4">Last updated: <span id="lastUpdated" class="font-medium text-gray-700">{{ config['last_updated_at'] }}</span></div>                        </div>                            </div>                                <div id="statusBadge" class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ 'bg-green-100 text-green-800' if config['status']=='ready' else ('bg-yellow-100 text-yellow-800' if config['status']=='processing' else 'bg-red-100 text-red-800') }}">{{ config['status'] }}</div>                                <div class="text-xs text-gray-500">Status</div>                            <div>                            <div><div class="text-xs text-gray-500">Version ID</div><div class="font-semibold">{{ config['version_id'] or 'None' }}</div></div>                            <div><div class="text-xs text-gray-500">Version</div><div class="font-semibold">{{ config['version'] or 'None' }}</div></div>                            <div><div class="text-xs text-gray-500">Name</div><div class="font-semibold">{{ config['name'] or 'None' }}</div></div>                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">                        {% if config %}                    <div class="p-6">                    </div>                        <h2 class="text-lg font-bold text-white">Active Framework</h2>                    <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500">                <div class="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">            <div class="max-w-4xl mx-auto space-y-6">        <main class="flex-1 overflow-y-auto p-8">        </header>            <p class="text-sm text-gray-500">Manage active framework versions and ingestion sources</p>            <h1 class="text-2xl font-semibold text-gray-900">Framework Management</h1>        <header class="bg-white border-b border-gray-200 px-8 py-4">    <div class="flex-1 flex flex-col overflow-hidden">    </aside>        </div>            <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 w-full">Sign Out</a>        <div class="p-4 border-t border-gray-200">        </nav>            {% endif %}            <a href="{{ url_for('frameworks_ui') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700">Frameworks</a>            {% if role == 'admin' or role == 'owner' %}            <a href="{{ url_for('upload') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700">Upload Document</a>            </a>                <span class="nav-text">Dashboard</span>            <a href="{% if role == 'admin' %}{{ url_for('dashboardAdmin') }}{% else %}{{ url_for('dashboard') }}{% endif %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg nav-active">        <nav class="flex-1 px-4 space-y-2 overflow-y-auto">        </div>            </button>                </svg>                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">            <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg">            </div>                <div class="text-2xl font-bold text-purple-600">ComplyAI</div>            <div id="logo-container" class="flex items-center justify-center flex-1">        <div class="p-6 flex items-center justify-between">    <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col w-64"><div class="flex h-screen"><body class="bg-gray-50"></head>    </style>        .nav-active { background-color: #6D28D9; color: white !important; }        .sidebar.collapsed .nav-text, .sidebar.collapsed #logo-container > div { display: none; }        .sidebar.collapsed { width: 5rem; }        .sidebar { transition: width 0.3s ease; }        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }    <style>    <script src="https://cdn.tailwindcss.com"></script>    <title>ComplyAI - Framework Management</title>    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta charset="UTF-8"><head><html lang="en"><html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplyAI - Framework Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        .sidebar { transition: width 0.3s ease; }
+        .sidebar.collapsed { width: 5rem; }
+        .sidebar.collapsed .nav-text, .sidebar.collapsed .settings-header, .sidebar.collapsed #logo-container > div { display: none; }
+        .nav-active { background-color: #6D28D9; color: white !important; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<div class="flex h-screen">
+
+    <!-- SIDEBAR (minimal) -->
+    <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col w-64">
+        <div class="p-6 flex items-center justify-between">
+            <div id="logo-container" class="flex items-center justify-center flex-1">
+                <div class="text-2xl font-bold text-purple-600">ComplyAI</div>
+            </div>
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg">
+                <svg id="chevron-icon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+            <a href="{% if role == 'admin' %}{{ url_for('dashboardAdmin') }}{% else %}{{ url_for('dashboard') }}{% endif %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="{{ url_for('upload') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">Upload Document</a>
+            <a href="{{ url_for('calendar') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">Calendar</a>
+            <a href="{{ url_for('documents') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">Documents</a>
+            <a href="{{ url_for('shared_documents_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">Shared Documents</a>
+            <a href="{{ url_for('chat_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">Chat</a>
+
+            <div id="settings-section" class="pt-6 space-y-2">
+                <h3 class="settings-header px-4 text-sm font-semibold text-gray-900 mb-2">General Settings</h3>
+
+                <a href="{{ url_for('account') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">Account Settings</a>
+
+                {% if role == 'admin' %}
+                <a href="{{ url_for('management') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">User Management</a>
+                {% endif %}
+
+                {% if role == 'admin' or role == 'owner' %}
+                <a href="{{ url_for('frameworks_ui') }}" class="nav-item nav-active flex items-center gap-3 px-4 py-3 rounded-lg">Frameworks</a>
+                {% endif %}
+
+                <a href="{{ url_for('readme') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">About ComplyAI</a>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 w-full">Sign Out</a>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white border-b border-gray-200 px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">Framework Management</h1>
+                    <p class="text-sm text-gray-500">Manage the active compliance framework and rebuild the vector index</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500">
+                        <h2 class="text-lg font-bold text-white">Active Framework</h2>
+                    </div>
+                    <div class="p-6">
+                        {% if config %}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <div class="text-xs text-gray-500">Name</div>
+                                <div class="font-semibold">{{ config['name'] or 'None' }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500">Version</div>
+                                <div class="font-semibold">{{ config['version'] or 'None' }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500">Status</div>
+                                <div id="statusBadge" class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ 'bg-green-100 text-green-800' if config['status']=='ready' else ('bg-yellow-100 text-yellow-800' if config['status']=='processing' else 'bg-red-100 text-red-800') }}">{{ config['status'] }}</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-500 mb-4">Last updated: <span id="lastUpdated" class="font-medium text-gray-700">{{ config['last_updated_at'] }}</span></div>
+                        {% else %}
+                        <div class="text-gray-600">No active framework configured.</div>
+                        {% endif %}
+
+                        <div class="text-red-600 font-semibold mb-4">Warning: Uploading a new framework will replace the current knowledge base.</div>
+
+                        <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" enctype="multipart/form-data">
+                            <div>
+                                <label class="text-sm text-gray-600">Framework name</label>
+                                <input name="name" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="custom-framework">
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Version</label>
+                                <input name="version" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="latest">
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Version ID</label>
+                                <input name="version_id" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" placeholder="e.g. nist-csf-2-1">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="text-sm text-gray-600">Description</label>
+                                <textarea name="description" rows="2" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" placeholder="Describe this framework version"></textarea>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Files (PDF)</label>
+                                <input type="file" name="files" multiple class="mt-1 w-full" accept="application/pdf">
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Source URL (PDF/JSON)</label>
+                                <input name="source_url" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" placeholder="https://...">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="text-sm text-gray-600">Source JSON (optional)</label>
+                                <textarea name="source_json" rows="5" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full font-mono text-sm" placeholder='{"controls":[{"id":"ID.AM-1","title":"...","description":"..."}]}'></textarea>
+                            </div>
+
+                            <div class="md:col-span-2 text-right">
+                                <button id="uploadBtn" type="submit" class="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold">Upload & Rebuild</button>
+                            </div>
+                        </form>
+
+                        <div id="result" class="mt-4 text-sm text-gray-700"></div>
+
+                        <div class="mt-6">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-2">Activity Log</h3>
+                            <div id="auditLog" class="text-sm text-gray-600 max-h-40 overflow-y-auto border border-gray-100 p-3 rounded"></div>
+                        </div>
+
+                        <div class="mt-6">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-2">Framework Versions</h3>
+                            <div id="versionList" class="text-sm text-gray-700 max-h-64 overflow-y-auto border border-gray-100 p-3 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+const SIDEBAR_STATE_KEY = 'complyai_sidebar_collapsed';
+
+function applySidebarState() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    const isCollapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === '1';
+    sidebar.classList.toggle('collapsed', isCollapsed);
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    const isCollapsed = !sidebar.classList.contains('collapsed');
+    sidebar.classList.toggle('collapsed', isCollapsed);
+    localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? '1' : '0');
+}
+
+document.addEventListener('DOMContentLoaded', applySidebarState);
+
+async function fetchStatus(){
+    try{
+        const r = await fetch('/api/framework/status');
+        if(!r.ok) return;
+        const cfg = await r.json();
+        document.getElementById('lastUpdated').innerText = cfg.last_updated_at || '';
+        const badge = document.getElementById('statusBadge');
+        if(badge){ badge.innerText = cfg.status || '';
+            badge.className = 'inline-block px-3 py-1 rounded-full text-sm font-medium ' + (cfg.status==='ready'? 'bg-green-100 text-green-800' : (cfg.status==='processing'? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'));
+        }
+    }catch(e){ console.warn(e); }
+}
+
+async function fetchAudit(){
+    try{
+        const r = await fetch('/api/framework/audit_logs');
+        if(!r.ok) return;
+        const rows = await r.json();
+        const el = document.getElementById('auditLog');
+        el.innerHTML = rows.map(r=>`<div class="mb-2"><div class="text-xs text-gray-500">${r.created_at} — <strong>${r.event_type}</strong></div><div>${r.message}</div></div>`).join('');
+    }catch(e){ console.warn(e); }
+}
+
+async function activateVersion(versionId){
+    try {
+        const r = await fetch('/api/framework/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ version_id: versionId })
+        });
+        const data = await r.json();
+        if (!r.ok) {
+            document.getElementById('result').innerText = data.error || 'Failed to activate version';
+            return;
+        }
+        document.getElementById('result').innerText = `Activated version: ${versionId}`;
+        await fetchStatus();
+        await fetchAudit();
+        await fetchVersions();
+    } catch (e) {
+        document.getElementById('result').innerText = String(e);
+    }
+}
+
+async function fetchVersions(){
+    try{
+        const r = await fetch('/api/framework/versions');
+        if(!r.ok) return;
+        const data = await r.json();
+        const versions = data.versions || [];
+        const active = data.active_version_id;
+        const el = document.getElementById('versionList');
+        if(!versions.length){
+            el.innerHTML = '<div class="text-gray-500">No framework versions found.</div>';
+            return;
+        }
+        el.innerHTML = versions.map(v => {
+            const isActive = (v.version_id === active) || Number(v.is_active) === 1;
+            const badge = isActive
+                ? '<span class="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold">Active</span>'
+                : '<span class="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-semibold">Inactive</span>';
+            const activateBtn = isActive
+                ? ''
+                : `<button class="ml-2 px-2 py-1 rounded bg-purple-600 text-white text-xs" onclick="activateVersion('${v.version_id}')">Activate</button>`;
+            return `<div class="mb-3 pb-3 border-b border-gray-100">
+                <div class="flex items-center justify-between gap-2">
+                    <div><strong>${v.framework_name || 'Framework'}</strong> v${v.version_label || 'n/a'} <span class="text-xs text-gray-500">(${v.version_id})</span></div>
+                    <div>${badge}${activateBtn}</div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">${v.created_at || ''} • ${v.chunk_count || 0} chunks • ${v.source_type || 'unknown source'}</div>
+            </div>`;
+        }).join('');
+    }catch(e){ console.warn(e); }
+}
+    const fd = new FormData(form);
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.innerText = 'Starting...';
+    try{
+        const res = await fetch('/api/framework/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        document.getElementById('result').innerText = JSON.stringify(data);
+        // refresh immediately
+        await fetchStatus();
+        await fetchAudit();
+        await fetchVersions();
+    }catch(err){
+        document.getElementById('result').innerText = String(err);
+    }finally{ btn.disabled = false; btn.innerText = 'Upload & Rebuild'; }
+});
+
+// Poll status and audit every 4s
+setInterval(()=>{ fetchStatus(); fetchAudit(); fetchVersions(); }, 4000);
+// initial
+fetchStatus(); fetchAudit(); fetchVersions();
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</html></body></script>});  }finally{ btn.disabled = false; }    btn.innerText = 'Upload & Rebuild';    document.getElementById('result').innerText = String(err);  }catch(err){    btn.innerText = 'Upload & Rebuild';    document.getElementById('result').innerText = JSON.stringify(data);    const data = await res.json();    const res = await fetch('/api/framework/upload', { method: 'POST', body: fd });  try{  btn.innerText = 'Starting...';  btn.disabled = true;  const btn = document.getElementById('uploadBtn');  const fd = new FormData(form);  const form = e.currentTarget;  e.preventDefault();document.getElementById('uploadForm').addEventListener('submit', async function(e){}  document.getElementById('sidebar').classList.toggle('collapsed');function toggleSidebar(){<script></div>  </div>    </main>      </div>        </div>          </div>            <div id="result" class="mt-4 text-sm text-gray-700"></div>            </form>              </div>                <button id="uploadBtn" type="submit" class="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold">Upload & Rebuild</button>              <div class="md:col-span-2 text-right">              </div>                <input type="file" name="files" multiple class="mt-1 w-full" accept="application/pdf">                <label class="text-sm text-gray-600">Files (PDF)</label>              <div>              </div>                <input name="embedding_model" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="qwen3-embedding">                <label class="text-sm text-gray-600">Embedding model</label>              <div>              </div>                <input name="version" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="latest">                <label class="text-sm text-gray-600">Version</label>              <div>              </div>                <input name="name" class="mt-1 px-4 py-2 border border-gray-300 rounded-lg w-full" value="custom-framework">                <label class="text-sm text-gray-600">Framework name</label>              <div>            <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" enctype="multipart/form-data">            <div class="text-red-600 font-semibold mb-4">Warning: Uploading a new framework will replace the current knowledge base.</div>            {% endif %}            <div class="text-gray-600">No active framework configured.</div>            {% else %}            <div class="text-sm text-gray-500 mb-4">Last updated: <span class="font-medium text-gray-700">{{ config['last_updated_at'] }}</span></div>            </div>              </div>                <div class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ 'bg-green-100 text-green-800' if config['status']=='ready' else 'bg-yellow-100 text-yellow-800' }}">{{ config['status'] }}</div>                <div class="text-xs text-gray-500">Status</div>              <div>              </div>                <div class="font-semibold">{{ config['version'] or 'None' }}</div>                <div class="text-xs text-gray-500">Version</div>              <div>              </div>                <div class="font-semibold">{{ config['name'] or 'None' }}</div>                <div class="text-xs text-gray-500">Name</div>              <div>            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">            {% if config %}          <div class="p-6">          </div>            <h2 class="text-lg font-bold text-white">Active Framework</h2>          <div class="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500">        <div class="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">      <div class="max-w-4xl mx-auto space-y-6">    <main class="flex-1 overflow-y-auto p-8">    </header>      </div>        </div>          <p class="text-sm text-gray-500">Manage the active compliance framework and rebuild the vector index</p>          <h1 class="text-2xl font-semibold text-gray-900">Framework Management</h1>        <div>      <div class="flex items-center justify-between">    <header class="bg-white border-b border-gray-200 px-8 py-4">  <div class="flex-1 flex flex-col overflow-hidden">  <!-- MAIN -->  </aside>    </div>      <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 w-full">Sign Out</a>    <div class="p-4 border-t border-gray-200">    </nav>      {% endif %}      <a href="{{ url_for('frameworks_ui') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700">Frameworks</a>      {% if role == 'admin' or role == 'owner' %}      <a href="{{ url_for('upload') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700">Upload Document</a>      <!-- keep other nav items minimal to match layout -->      </a>        <span class="nav-text">Dashboard</span>        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>      <a href="{% if role == 'admin' %}{{ url_for('dashboardAdmin') }}{% else %}{{ url_for('dashboard') }}{% endif %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg nav-active">    <nav class="flex-1 px-4 space-y-2 overflow-y-auto">    </div>      </button>        </svg>          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>        <svg id="chevron-icon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">      <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg">      </div>        <div class="text-2xl font-bold text-purple-600">ComplyAI</div>      <div id="logo-container" class="flex items-center justify-center flex-1">    <div class="p-6 flex items-center justify-between">  <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col w-64">  <!-- SIDEBAR (reuse main nav) --><div class="flex h-screen"><body class="bg-gray-50"></head>  </style>    .nav-active { background-color: #6D28D9; color: white !important; }    .sidebar.collapsed .nav-text, .sidebar.collapsed .settings-header, .sidebar.collapsed #logo-container > div { display: none; }    .sidebar.collapsed { width: 5rem; }    .sidebar { transition: width 0.3s ease; }    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }  <style>  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>  <script src="https://cdn.tailwindcss.com"></script>  <title>ComplyAI - Framework Management</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <meta charset="UTF-8"><head><html lang="en"><html>
+<head>
+    <meta charset="utf-8" />
+    <title>Framework Management</title>
+</head>
+<body>
+    <h1>Framework Management</h1>
+    {% if config %}
+        <p><strong>Active:</strong> {{ config['name'] }} @ {{ config['version'] }}</p>
+        <p><strong>Status:</strong> {{ config['status'] }}</p>
+        <p><strong>Last updated:</strong> {{ config['last_updated_at'] }}</p>
+        <p style="color:red;"><strong>Warning:</strong> Uploading a new framework will replace the current knowledge base.</p>
+    {% else %}
+        <p>No active framework configured.</p>
+    {% endif %}
+
+    <form id="uploadForm" method="post" enctype="multipart/form-data" action="/api/framework/upload">
+        <label>Framework name: <input type="text" name="name" value="custom-framework"></label><br/>
+        <label>Version: <input type="text" name="version" value="latest"></label><br/>
+        <label>Embedding model: <input type="text" name="embedding_model" value="qwen3-embedding"></label><br/>
+        <label>Files (PDF): <input type="file" name="files" multiple></label><br/>
+        <button type="submit">Upload & Rebuild</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+    const form = document.getElementById('uploadForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const res = await fetch('/api/framework/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        document.getElementById('result').innerText = JSON.stringify(data);
+    });
+    </script>
+</body>
+</html>

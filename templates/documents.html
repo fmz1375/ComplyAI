@@ -1,0 +1,2539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplyAI - User Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    :root { --primary: #5b2cff; --accent: #8b5cf6; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    .sidebar {
+      transition: width 0.3s ease;
+    }
+    .sidebar.collapsed {
+      width: 5rem;
+    }
+    .sidebar.collapsed .nav-text,
+    .sidebar.collapsed .settings-header,
+    .sidebar.collapsed #logo-container > div {
+      display: none;
+    }
+    .sidebar.collapsed .nav-item {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .sidebar.collapsed #chevron-icon {
+      transform: rotate(180deg);
+    }
+    .nav-active {
+      background-color: #6D28D9;
+      color: white !important;
+    }
+    .nav-active .nav-text {
+      color: white !important;
+    }
+    .nav-active svg {
+      stroke: white !important;
+    }
+    /* Report blocks - matching index.html */
+    .report-block {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(91,44,255,0.07);
+        overflow: hidden;
+        width: 100%;
+    }
+    .report-block-header {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        padding: 16px 22px;
+        font-weight: 700;
+        font-size: 1.05em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .report-block-body {
+        padding: 22px;
+        font-size: 0.95em;
+        line-height: 1.7;
+        min-height: 60px;
+    }
+    /* Gap cards inside report */
+    .rpt-gap-card {
+        background: #f8f5ff;
+        border-left: 5px solid var(--accent);
+        padding: 14px;
+        margin-bottom: 14px;
+        border-radius: 8px;
+    }
+    .rpt-gap-card.critical { border-left-color: #dc2626; background: #fee2e2; }
+    .rpt-gap-card.high { border-left-color: #ea580c; background: #ffedd5; }
+    .rpt-gap-card.medium { border-left-color: #f59e0b; background: #fef3c7; }
+    .rpt-gap-card.low { border-left-color: #22c55e; background: #ecfdf5; }
+    .rpt-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 0.8em;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 8px;
+    }
+    .rpt-badge.critical { background: #dc2626; }
+    .rpt-badge.high { background: #ea580c; }
+    .rpt-badge.medium { background: #f59e0b; }
+    .rpt-badge.low { background: #22c55e; }
+    /* Heatmap grid */
+    .heatmap-grid { display: grid; gap: 10px; }
+    .heatmap-item {
+        display: grid;
+        grid-template-columns: 1fr 80px 80px 100px;
+        gap: 8px;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+    }
+    .heatmap-item.low { background: #22c55e; }
+    .heatmap-item.medium { background: #f59e0b; }
+    .heatmap-item.high { background: #ea580c; }
+    .heatmap-item.critical { background: #dc2626; }
+    .heatmap-item-label { font-size: 0.85em; text-align: center; opacity: 0.9; }
+    /* Risk table */
+    .risk-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9em;
+    }
+    .risk-table th {
+        background: var(--primary);
+        color: white;
+        padding: 10px 14px;
+        text-align: left;
+    }
+    .risk-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: top;
+    }
+    .risk-table tr:nth-child(even) td { background: #f9fafb; }
+    .risk-level-pill {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.82em;
+        font-weight: 700;
+        color: white;
+    }
+    .risk-level-pill.critical { background: #dc2626; }
+    .risk-level-pill.high { background: #ea580c; }
+    .risk-level-pill.medium { background: #f59e0b; }
+    .risk-level-pill.low { background: #22c55e; }
+    /* Metric cards */
+    .metric-card {
+        border-radius: 8px;
+        padding: 14px;
+        text-align: center;
+    }
+    .metric-value {
+        font-size: 1.6em;
+        font-weight: 800;
+    }
+    .metric-label {
+        font-size: 0.8em;
+        color: #6b7280;
+        margin-top: 4px;
+    }
+    /* Collapsible report sections */
+    .report-block-header {
+        cursor: pointer;
+        user-select: none;
+    }
+    .report-block-header .toggle-chevron {
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+    .report-block-header.collapsed .toggle-chevron {
+        transform: rotate(-90deg);
+    }
+    .report-block-body {
+        transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.2s ease;
+        overflow: hidden;
+    }
+    .report-block-body.collapsed {
+        max-height: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        opacity: 0;
+    }
+    .expand-collapse-controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .expand-collapse-btn {
+        padding: 6px 14px;
+        font-size: 0.85em;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid var(--primary);
+    }
+    .expand-collapse-btn.expand {
+        background: white;
+        color: var(--primary);
+    }
+    .expand-collapse-btn.expand:hover {
+        background: #f3f0ff;
+    }
+    .expand-collapse-btn.collapse {
+        background: var(--primary);
+        color: white;
+    }
+    .expand-collapse-btn.collapse:hover {
+        background: var(--accent);
+    }
+    .feedback-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .feedback-btn {
+      border: none;
+      color: white;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.78em;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .feedback-btn.verify { background: #16a34a; }
+    .feedback-btn.dismiss { background: #dc2626; }
+    .feedback-status {
+      font-size: 0.78em;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<div class="flex h-screen">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col w-64">
+    <!-- Logo + Toggle -->
+    <div class="p-6 flex items-center justify-between">
+      <div id="logo-container" class="flex items-center justify-center flex-1">
+        <div class="text-2xl font-bold text-purple-600">ComplyAI</div>
+      </div>
+      <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg">
+        <svg id="chevron-icon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+      <!-- Dashboard -->
+      <a href="{% if role == 'admin' %}{{ url_for('dashboardAdmin') }}{% else %}{{ url_for('dashboard') }}{% endif %}"
+         id="navDashboard"
+         class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+        <span class="nav-text">Dashboard</span>
+      </a>
+
+      <!-- Upload -->
+      <a href="{{ url_for('upload') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <span class="nav-text">Upload Document</span>
+      </a>
+
+      <!-- Calendar -->
+      <a href="{{ url_for('calendar') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <span class="nav-text">Calendar</span>
+      </a>
+
+      <!-- Documents -->
+      <a href="{{ url_for('documents') }}" class="nav-item nav-active flex items-center gap-3 px-4 py-3 rounded-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 3h6l4 4v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v4h4"></path>
+        </svg>
+        <span class="nav-text">Documents</span>
+      </a>
+
+      <!-- Shared Documents -->
+      <a href="{{ url_for('shared_documents_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <span class="nav-text">Shared Documents</span>
+      </a>
+
+      <!-- Chat -->
+      <a href="{{ url_for('chat_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        <span class="nav-text">Chat</span>
+      </a>
+
+      <!-- General Settings -->
+      <div id="settings-section" class="pt-6 space-y-2">
+        <h3 class="settings-header px-4 text-sm font-semibold text-gray-900 mb-2">General Settings</h3>
+
+        <a href="{{ url_for('account') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <span class="nav-text">Account Settings</span>
+        </a>
+
+        {% if role == 'admin' %}
+        <a href="{{ url_for('management') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          <span class="nav-text">User Management</span>
+        </a>
+        {% endif %}
+
+        {% if role == 'admin' or role == 'owner' %}
+        <a href="{{ url_for('frameworks_ui') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v4a4 4 0 004 4h10a4 4 0 004-4V7M3 7a4 4 0 014-4h10a4 4 0 014 4M3 7h18"/>
+          </svg>
+          <span class="nav-text">Frameworks</span>
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('readme') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="nav-text">About ComplyAI</span>
+        </a>
+        
+      </div>
+
+    </nav>
+
+    <!-- Sign Out -->
+    <div class="p-4 border-t border-gray-200">
+      <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        <span class="nav-text">Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-8 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-900">Welcome Back, {{ full_name }}</h1>
+          <p class="text-sm text-gray-500">Track your progress with ease</p>
+        </div>
+      </div>
+    </header>
+
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <div class="flex-1 p-10 overflow-auto">
+
+    <h1 class="text-2xl font-semibold text-gray-900 mb-6">Your Documents & Compliance</h1>
+
+    <!-- FILTER BAR -->
+    <form method="GET" class="bg-white p-6 rounded-2xl shadow border border-gray-200 mb-8">
+      <div class="grid grid-cols-5 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Due Date From</label>
+          <input type="date" name="due_date_from" value="{{ request.args.get('due_date_from', '') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Due Date To</label>
+          <input type="date" name="due_date_to" value="{{ request.args.get('due_date_to', '') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Review Status</label>
+          <select name="review_status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+            <option value="">All</option>
+            <option value="Compliant" {% if request.args.get('review_status') == 'Compliant' %}selected{% endif %}>Compliant</option>
+            <option value="Under Review" {% if request.args.get('review_status') == 'Under Review' %}selected{% endif %}>Under Review</option>
+            <option value="Non-Compliant" {% if request.args.get('review_status') == 'Non-Compliant' %}selected{% endif %}>Non-Compliant</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" name="show_inactive" value="1" {% if show_inactive %}checked{% endif %} class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+            Include inactive versions
+          </label>
+        </div>
+        <div class="flex items-end">
+          <button type="submit" class="w-full bg-purple-600 text-white rounded-lg py-2 text-sm font-semibold hover:bg-purple-700 transition">Apply Filters</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- ================= DOCUMENT CARDS ================= -->
+    {% if documents %}
+    <div class="space-y-12">
+      {% for item in documents %}
+      <div id="doc-{{ item.doc.id }}" class="bg-white rounded-2xl shadow-md border border-gray-200 p-8 hover:shadow-lg transition">
+
+        <!-- HEADER -->
+       <div class="flex justify-between items-start mb-6">
+  <div>
+    <h2 class="text-xl font-bold text-gray-900">{{ item.doc.documentTitle }}</h2>
+    <p class="text-sm text-gray-500 mt-1">Document ID: {{ item.doc.id }}</p>
+    <p class="text-xs text-gray-500 mt-1">Version Group: {{ item.doc.version_group_id or ('vg_' ~ item.doc.id) }}</p>
+    {% set owner_can_manage = (item.doc.user_id == user_id) %}
+    {% if item.report_cards and item.report_cards|length > 0 %}
+      {% set latest_report = item.report_cards[0] %}
+      <p class="text-xs text-purple-700 mt-1 font-medium">
+        Framework:
+        {{ latest_report.framework_name or 'NIST CSF' }}
+        {% if latest_report.framework_version_label %}
+          v{{ latest_report.framework_version_label }}
+        {% endif %}
+        {% if latest_report.framework_version_id %}
+          ({{ latest_report.framework_version_id }})
+        {% endif %}
+      </p>
+    {% endif %}
+  </div>
+
+  <div class="flex items-center gap-2 flex-wrap">
+
+    <button onclick='openDocChat({{ item.doc.id }}, {{ item.doc.documentTitle|tojson|safe }})'
+            class="px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+      </svg>
+      Chat with document
+    </button>
+
+    {% if owner_can_manage %}
+    <!-- Invite Viewer Button (owner only, not admin) -->
+    <button onclick="openDocInviteModal({{ item.doc.id }}, '{{ item.doc.documentTitle|e }}')"
+            class="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-200 transition flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+      </svg>
+      Invite Viewer
+    </button>
+    <!-- Manage Viewers Button -->
+    <button onclick="openViewersModal({{ item.doc.id }})"
+            class="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-semibold hover:bg-indigo-200 transition flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      Viewers
+    </button>
+    <!-- Manage Share Links Button -->
+    <button onclick="openShareLinksModal({{ item.doc.id }})"
+            class="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-semibold hover:bg-indigo-200 transition flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+      </svg>
+      Share Links
+    </button>
+    <!-- Edit Document Button -->
+    <button onclick="openEditReportModalForDoc({{ item.doc.id }})"
+            class="px-3 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm font-semibold hover:bg-amber-200 transition flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      Edit
+    </button>
+    <!-- Update Version Button -->
+    <a href="{{ url_for('upload', previous_document_id=item.doc.id) }}"
+       class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-200 transition flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6M20 20v-6h-6M20 8A8 8 0 006.34 5.34M4 16a8 8 0 0013.66 2.66"/>
+      </svg>
+      Update Version
+    </a>
+    <!-- Delete Button (Users Only) -->
+    <form method="POST"
+          action="{{ url_for('delete_document', doc_id=item.doc.id) }}"
+          onsubmit="return confirm('Are you sure you want to delete this document?');">
+      <button type="submit"
+              class="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-200 transition">
+        Delete
+      </button>
+    </form>
+    {% endif %}
+
+    {% if item.history_versions and item.history_versions|length > 0 %}
+      <button type="button" onclick="toggleHistory(this, '{{ item.doc.id }}')"
+              class="px-3 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition">
+        <span class="history-toggle-text">View History</span> ({{ item.history_versions|length }})
+      </button>
+    {% endif %}
+
+    {% set review = item.doc.Review %}
+    {% if role == "admin" %}
+      <form method="POST" action="{{ url_for('update_review') }}" style="display:inline-block;">
+        <input type="hidden" name="document_id" value="{{ item.doc.id }}">
+        <select name="new_status" onchange="this.form.submit()" class="px-4 py-2 rounded-full text-sm font-semibold {% if review == 'Compliant' %}bg-green-100 text-green-700{% elif review == 'Under Review' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %}">
+          <option value="Under Review" {% if review == 'Under Review' %}selected{% endif %}>Under Review</option>
+          <option value="Compliant" {% if review == 'Compliant' %}selected{% endif %}>Compliant</option>
+          <option value="Non-Compliant" {% if review == 'Non-Compliant' %}selected{% endif %}>Non-Compliant</option>
+        </select>
+      </form>
+    {% else %}
+      <div class="px-4 py-2 rounded-full text-sm font-semibold {% if review == 'Compliant' %}bg-green-100 text-green-700{% elif review == 'Under Review' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %}">
+        {{ review }}
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+        <!-- SEE MORE TOGGLE -->
+        <button onclick="toggleCard(this)" class="w-full text-center text-purple-600 font-semibold text-sm hover:text-purple-800 transition mt-4 flex items-center justify-center gap-2">
+          <span class="toggle-text">See More</span>
+          <svg class="w-4 h-4 toggle-icon transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+
+        <!-- COLLAPSIBLE CONTENT -->
+        <div class="card-content hidden mt-6">
+
+        <!-- DOCUMENT DETAILS -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          {% for key, value in item.doc.items() %}
+            {% if key != 'documentTitle' %}
+            <div>
+              <p class="text-xs uppercase text-gray-400 tracking-wide">{{ key }}</p>
+              <p class="text-sm text-gray-800 mt-1 break-words">{{ value }}</p>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if item.history_versions and item.history_versions|length > 0 %}
+        <div id="history-{{ item.doc.id }}" class="hidden border-t pt-6 mb-6">
+          <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Historical Versions</h3>
+          <div class="space-y-3">
+            {% for hist in item.history_versions %}
+            <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p class="text-sm font-semibold text-gray-800">Version ID {{ hist.id }} (Inactive)</p>
+                  <p class="text-xs text-gray-500 mt-1">Deactivated: {{ hist.deactivated_at or 'N/A' }}</p>
+                  <p class="text-xs text-gray-500">Uploaded: {{ hist.uploadDate or 'N/A' }}</p>
+                  {% if hist.latest_compliance_score is not none %}
+                  <p class="text-xs text-purple-700 font-medium">Latest Compliance Score: {{ "%.1f"|format(hist.latest_compliance_score) }}%</p>
+                  {% endif %}
+                </div>
+                <div class="flex items-center gap-2">
+                  <a href="{{ url_for('download_document_version', doc_id=hist.id) }}"
+                     class="px-3 py-2 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 transition">
+                    Download
+                  </a>
+                  {% if owner_can_manage or role == 'admin' %}
+                  <form method="POST" action="{{ url_for('reactivate_document_version', doc_id=hist.id) }}" onsubmit="return confirm('Reactivate this version and move the current active version into history?');">
+                    <button type="submit"
+                            class="px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold hover:bg-emerald-200 transition">
+                      Reactivate
+                    </button>
+                  </form>
+                  {% endif %}
+                  <button type="button"
+                          onclick="compareVersionScores({{ item.doc.id }}, {{ hist.id }})"
+                          class="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-semibold hover:bg-indigo-200 transition">
+                    Compare Score
+                  </button>
+                </div>
+              </div>
+              <div id="compare-result-{{ item.doc.id }}-{{ hist.id }}" class="hidden mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+                <div class="font-semibold mb-2">Version Score Comparison</div>
+                <div class="compare-active-score"></div>
+                <div class="compare-historical-score"></div>
+                <div class="compare-delta font-medium"></div>
+                <div class="compare-note text-xs text-indigo-700 mt-2"></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- COMPLIANCE GAPS -->
+        <div class="border-t pt-6">
+          <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide"></h3>
+          {% if item.compliance %}
+            {% for comp in item.compliance %}
+            <div class="bg-gray-50 rounded-xl p-5 text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
+              {{ comp.gaps }}
+            </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-gray-500 text-sm"></p>
+          {% endif %}
+          {% if item.report_cards and item.report_cards|length > 0 %}
+            <div class="border-t pt-6 mt-6">
+              <h3 class="text-sm font-semibold text-purple-700 mb-3 uppercase tracking-wide">Compliance Report</h3>
+              {% for report in item.report_cards %}
+              <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6 report-container">
+                <!-- Report Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-400 text-white px-6 py-4">
+                  <h2 class="text-xl font-bold">NIST CSF Compliance Report</h2>
+                  <p class="text-purple-100 text-sm mt-1">{{ report.organization_name or 'Organization' }}</p>
+                  <p class="text-purple-200 text-xs mt-1">Generated: {{ report.created_at }}</p>
+                  <p class="text-purple-100 text-xs mt-1">
+                    Framework Used:
+                    {{ report.framework_name or 'NIST CSF' }}
+                    {% if report.framework_version_label %}
+                      v{{ report.framework_version_label }}
+                    {% endif %}
+                    {% if report.framework_version_id %}
+                      ({{ report.framework_version_id }})
+                    {% endif %}
+                    {% if not report.framework_version_label and not report.framework_version_id %}
+                      (version unavailable)
+                    {% endif %}
+                  </p>
+                  <!-- Expand/Collapse All Controls -->
+                  <div class="expand-collapse-controls mt-3">
+                    <button onclick="expandAllSections(this.closest('.report-container'))" class="expand-collapse-btn expand">
+                      <span>▼</span> Expand All
+                    </button>
+                    <button onclick="collapseAllSections(this.closest('.report-container'))" class="expand-collapse-btn collapse">
+                      <span>▲</span> Collapse All
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Compliance Summary Block -->
+                <div class="report-block">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>📊 Compliance Summary</span>
+                    </div>
+                                    {% if owner_can_manage %}<button onclick="event.stopPropagation(); openShareModal({{ item.doc.id }}, 'org_info')" class="share-section-btn">🔗 Share</button>{% endif %}
+                  </div>
+                  <div class="report-block-body collapsed">
+                    <!-- Compliance Percentage by Function Chart -->
+                    <div style="margin-bottom:20px;padding:16px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
+                      <h3 style="font-weight:700;margin-bottom:12px;font-size:1.1em;">Compliance Percentage by Function</h3>
+                      <div style="position:relative;height:400px;width:100%;">
+                        <canvas id="complianceChart_{{ loop.index }}" data-assessment-id="{{ report.id }}" style="width:100%;height:100%;"></canvas>
+                      </div>
+                    </div>
+                    <!-- Organization Info Grid -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                      <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Organization</div>
+                        <div style="font-weight:700; font-size:1.1em;">{{ report.organization_name or 'N/A' }}</div>
+                      </div>
+                      <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Industry</div>
+                        <div style="font-weight:600;">{{ report.industry or 'N/A' }}</div>
+                      </div>
+                      <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Assessment Scope</div>
+                        <div>{{ report.scope or 'N/A' }}</div>
+                      </div>
+                      <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Size</div>
+                        <div>{{ report.size or 'N/A' }}</div>
+                      </div>
+                    </div>
+                    <!-- Metrics Cards -->
+                    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:8px;">
+                      {% set compliance_pct = report.compliance_summary.compliance_percentage|default(0) %}
+                      {% set compliance_color = '#22c55e' if compliance_pct >= 70 else '#dc2626' %}
+                      <div class="metric-card" style="background:{{ compliance_color }}15; border:1px solid {{ compliance_color }}40;">
+                        <div class="metric-value" style="color:{{ compliance_color }};">{{ "%.1f"|format(compliance_pct) }}%</div>
+                        <div class="metric-label">Compliance</div>
+                      </div>
+                      <div class="metric-card" style="background:#f59e0b15; border:1px solid #f59e0b40;">
+                        <div class="metric-value" style="color:#f59e0b;">{{ "%.1f"|format(report.compliance_summary.overall_risk_score|default(0)) }}/10</div>
+                        <div class="metric-label">Risk Score</div>
+                      </div>
+                      <div class="metric-card" style="background:#ea580c15; border:1px solid #ea580c40;">
+                        <div class="metric-value" style="color:#ea580c;">{{ report.compliance_summary.total_gaps|default(0) }}</div>
+                        <div class="metric-label">Total Gaps</div>
+                      </div>
+                      <div class="metric-card" style="background:#dc262615; border:1px solid #dc262640;">
+                        <div class="metric-value" style="color:#dc2626;">{{ report.compliance_summary.critical_findings|default(0) }}</div>
+                        <div class="metric-label">Critical Findings</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Compliance Gap Analysis Block -->
+                {% if report.gap_analysis is defined and report.gap_analysis|length > 0 %}
+                <div class="report-block">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>🔍 Compliance Gap Analysis</span>
+                    </div>
+                    {% if owner_can_manage %}<button onclick="event.stopPropagation(); openShareModal({{ item.doc.id }}, 'questionnaire')" class="share-section-btn">🔗 Share</button>{% endif %}
+                  </div>
+                  <div class="report-block-body collapsed">
+                    {% for gap in report.gap_analysis %}
+                    {% set level = (gap.risk_level|default('low'))|lower %}
+                    <div class="rpt-gap-card {{ level }}">
+                      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                        <strong style="font-size:0.95em;">{{ gap.control_id }}: {{ gap.control_title }}</strong>
+                        <span class="rpt-badge {{ level }}">{{ gap.risk_level }}</span>
+                      </div>
+                      <div style="font-size:0.85em; color:#6b7280; margin:4px 0 8px;">{{ gap.category|default('') }} → {{ gap.subcategory|default('') }}</div>
+                      <div style="margin-bottom:6px;"><strong>Description:</strong> {{ gap.description }}</div>
+                      <div style="margin-bottom:6px;"><strong>Reasoning:</strong> {{ gap.reasoning }}</div>
+                      {% if gap.evidence_sources and gap.evidence_sources|length > 0 %}
+                      <div style="font-size:0.85em; color:#6b7280;"><strong>Evidence:</strong> {{ gap.evidence_sources|join(', ') }}</div>
+                      {% endif %}
+                      <div class="feedback-actions finding-feedback"
+                           data-finding-key="doc{{ item.doc.id }}_report{{ report.id }}_gap_{{ gap.gap_id if gap.gap_id is defined else loop.index0 }}"
+                           data-control-id="{{ gap.control_id|default('') }}"
+                           data-confidence="{{ gap.confidence_score if gap.confidence_score is defined else '' }}"
+                           data-source-quote="{{ gap.description|default('')|e }}">
+                        <button class="feedback-btn verify" onclick="submitDocumentsFindingFeedback(this, 'verified')">✅ Verify</button>
+                        <button class="feedback-btn dismiss" onclick="submitDocumentsFindingFeedback(this, 'dismissed')">❌ Dismiss</button>
+                        <span class="feedback-status"></span>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Risk Assessment Block -->
+                {% if report.risk_assessment is defined and report.risk_assessment|length > 0 %}
+                <div class="report-block">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>⚠️ Risk Assessment</span>
+                    </div>
+                    {% if owner_can_manage %}<button onclick="event.stopPropagation(); openShareModal({{ item.doc.id }}, 'risk_appetite')" class="share-section-btn">🔗 Share</button>{% endif %}
+                  </div>
+                  <div class="report-block-body collapsed">
+                    <table class="risk-table">
+                      <thead>
+                        <tr>
+                          <th>Risk Item</th>
+                          <th>Level</th>
+                          <th>Likelihood</th>
+                          <th>Impact</th>
+                          <th>Business Impact</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for risk in report.risk_assessment %}
+                        {% set level = (risk.risk_level|default('low'))|lower %}
+                        <tr>
+                          <td>
+                            <strong>{{ risk.title|default('Risk') }}</strong><br>
+                            <span style="font-size:0.85em; color:#6b7280;">{{ risk.description|default('') }}</span>
+                          </td>
+                          <td><span class="risk-level-pill {{ level }}">{{ risk.risk_level|default('N/A') }}</span></td>
+                          <td style="font-size:0.85em;">{{ risk.likelihood|default('N/A') }}</td>
+                          <td style="font-size:0.85em;">{{ risk.impact|default('N/A') }}</td>
+                          <td style="font-size:0.85em;">{{ risk.business_impact|default('N/A') }}</td>
+                          <td><span style="font-size:0.82em; background:#f3f4f6; padding:3px 8px; border-radius:4px;">{{ risk.mitigation_status|default('Unmitigated') }}</span></td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Risk Heat Map Block -->
+                {% if report.risk_heat_map and (report.risk_heat_map.visualization_path or report.risk_heat_map.report_id or report.risk_heat_map.items or report.risk_heat_map.heat_map_items) %}
+                <div class="report-block">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>🌡️ Risk Heat Map</span>
+                    </div>
+                    {% if owner_can_manage %}<button onclick="event.stopPropagation(); openShareModal({{ item.doc.id }}, 'heatmap')" class="share-section-btn">🔗 Share</button>{% endif %}
+                  </div>
+                  <div class="report-block-body collapsed">
+                    {# Display heatmap image - prefer file path (persists across restarts), fallback to API #}
+                    {% if report.risk_heat_map.visualization_path %}
+                    {# Extract just the filename from any path format (absolute or relative) #}
+                    {% set viz_path = report.risk_heat_map.visualization_path|string %}
+                    {% set img_filename = viz_path.split('\\')[-1].split('/')[-1] %}
+                    <div style="margin-bottom:16px;">
+                      <img src="/exports/{{ img_filename }}" 
+                           alt="Risk Heat Map" 
+                           style="max-width:100%; height:auto; border-radius:8px;"
+                           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+                      <p style="display:none; color:#6b7280; font-style:italic;">Heatmap visualization not available</p>
+                    </div>
+                    {% elif report.risk_heat_map.report_id %}
+                    <div style="margin-bottom:16px;">
+                      <img src="/api/heatmap-image/{{ report.risk_heat_map.report_id }}" 
+                           alt="Risk Heat Map" 
+                           style="max-width:100%; height:auto; border-radius:8px;"
+                           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+                      <p style="display:none; color:#6b7280; font-style:italic;">Heatmap visualization not available</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% set items_above = report.risk_heat_map.items_above_appetite|default(0) %}
+                    {% if items_above > 0 %}
+                    <div style="background:#fee2e2; border:1px solid #dc2626; border-radius:8px; padding:10px 14px; margin-bottom:16px; color:#dc2626; font-weight:600;">
+                      ⚠️ {{ items_above }} item(s) exceed organizational risk appetite
+                    </div>
+                    {% else %}
+                    <div style="background:#ecfdf5; border:1px solid #22c55e; border-radius:8px; padding:10px 14px; margin-bottom:16px; color:#16a34a; font-weight:600;">
+                      ✅ All items within organizational risk appetite
+                    </div>
+                    {% endif %}
+
+                    {# Support both 'heat_map_items' and 'items' keys for heatmap data #}
+                    {% set heatmap_items = report.risk_heat_map.heat_map_items if report.risk_heat_map.heat_map_items is defined else report.risk_heat_map.items|default([]) %}
+                    {% if heatmap_items and heatmap_items|length > 0 %}
+                    <div style="display:grid; grid-template-columns:1fr 80px 80px 100px; gap:8px; padding:8px 14px; font-size:0.82em; font-weight:700; color:#6b7280; text-transform:uppercase;">
+                      <div>Item</div>
+                      <div style="text-align:center;">Likelihood</div>
+                      <div style="text-align:center;">Impact</div>
+                      <div style="text-align:center;">Risk Level</div>
+                    </div>
+                    <div class="heatmap-grid">
+                      {% for hm_item in heatmap_items %}
+                      {% set level = (hm_item.risk_level|default('low'))|lower %}
+                      <div class="heatmap-item {{ level }}" title="{{ hm_item.reasoning|default('') }}">
+                        <div>{{ hm_item.name }}{% if hm_item.above_appetite %}<span style="font-size:0.75em; background:rgba(0,0,0,0.2); padding:2px 6px; border-radius:4px; margin-left:8px;">⚠️ Above Appetite</span>{% endif %}</div>
+                        <div class="heatmap-item-label">{{ hm_item.likelihood }}/5</div>
+                        <div class="heatmap-item-label">{{ hm_item.impact }}/5</div>
+                        <div class="heatmap-item-label">{{ hm_item.risk_level }}</div>
+                      </div>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Recommendations Block -->
+                {% if report.recommendations is defined and report.recommendations|length > 0 %}
+                <div class="report-block">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>✅ Recommendations</span>
+                    </div>
+                    {% if owner_can_manage %}<button onclick="event.stopPropagation(); openShareModal({{ item.doc.id }}, 'report')" class="share-section-btn">🔗 Share</button>{% endif %}
+                  </div>
+                  <div class="report-block-body collapsed">
+                    {% set grouped = {'High': [], 'Medium': [], 'Low': []} %}
+                    {% for rec in report.recommendations %}
+                      {% set priority = rec.priority|default('Low') %}
+                      {% if priority == 'High' %}
+                        {% set _ = grouped['High'].append(rec) %}
+                      {% elif priority == 'Medium' %}
+                        {% set _ = grouped['Medium'].append(rec) %}
+                      {% else %}
+                        {% set _ = grouped['Low'].append(rec) %}
+                      {% endif %}
+                    {% endfor %}
+                    
+                    {% set priority_colors = {'High': '#dc2626', 'Medium': '#f59e0b', 'Low': '#22c55e'} %}
+                    {% for priority in ['High', 'Medium', 'Low'] %}
+                      {% if grouped[priority]|length > 0 %}
+                      <div style="font-weight:700; color:{{ priority_colors[priority] }}; font-size:0.95em; margin:16px 0 8px; text-transform:uppercase; letter-spacing:0.05em;">
+                        {{ priority }} Priority
+                      </div>
+                      {% for rec in grouped[priority] %}
+                      <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px; margin-bottom:10px; border-left:4px solid {{ priority_colors[priority] }};">
+                        <div style="font-weight:700; margin-bottom:4px;">{{ rec.title|default('Recommendation') }}</div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:8px;">Estimated effort: {{ rec.estimated_effort|default('TBD') }}</div>
+                        <div style="font-size:0.9em;">{{ rec.description|default('') }}</div>
+                        {% if rec.implementation_steps and rec.implementation_steps|length > 0 %}
+                        <ul style="margin:8px 0 0; padding-left:20px; font-size:0.9em;">
+                          {% for step in rec.implementation_steps %}
+                          <li>{{ step }}</li>
+                          {% endfor %}
+                        </ul>
+                        {% endif %}
+                      </div>
+                      {% endfor %}
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Report Action Bar -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end items-center">
+                  <button onclick="openDownloadModal({{ report.id }})"
+                     class="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow hover:bg-purple-700 transition">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Download Report
+                  </button>
+                </div>
+
+              </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- ANALYSIS RESULTS CARDS -->
+        {% if item.compliance_results and item.compliance_results|length > 0 %}
+        <div class="border-t pt-6 mt-6">
+          <h3 class="text-sm font-semibold text-purple-700 mb-3 uppercase tracking-wide">Your Analysis Results</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for result in item.compliance_results %}
+              {% set report = result.results_json %}
+              <div class="bg-purple-100 rounded-xl p-5 shadow border-2 border-purple-400">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-bold text-purple-900">Analysis PDF:</span>
+                  <a href="{{ url_for('uploaded_file', filename=result.pdf_path) }}" target="_blank" class="text-purple-700 underline hover:text-purple-900 font-semibold">View PDF</a>
+                </div>
+                <p class="text-xs text-gray-500 mb-2">Generated: {{ result.created_at }}</p>
+                <!-- Compliance Summary -->
+                {% if report.compliance_summary is defined %}
+                <div class="report-block mb-4">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>📊 Compliance Summary</span>
+                    </div>
+                  </div>
+                  <div class="report-block-body collapsed">
+                    <strong>Total Gaps:</strong> {{ report.compliance_summary.total_gaps }}<br>
+                    <strong>Gaps by Function:</strong> {{ report.compliance_summary.gaps_by_function }}<br>
+                    <strong>Gaps by Risk Level:</strong> {{ report.compliance_summary.gaps_by_risk_level }}<br>
+                    <strong>Overall Risk Score:</strong> {{ report.compliance_summary.overall_risk_score }}<br>
+                    <strong>Compliance %:</strong> {{ report.compliance_summary.compliance_percentage }}<br>
+                    <strong>Critical Findings:</strong> {{ report.compliance_summary.critical_findings }}<br>
+                    <strong>High Priority Recommendations:</strong> {{ report.compliance_summary.high_priority_recommendations }}
+                  </div>
+                </div>
+                {% endif %}
+                <!-- Gap Analysis -->
+                {% if report.compliance_gaps is defined and report.compliance_gaps|length > 0 %}
+                <div class="report-block mb-4">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>🔍 Compliance Gap Analysis</span>
+                    </div>
+                  </div>
+                  <div class="report-block-body collapsed">
+                    {% for gap in report.compliance_gaps %}
+                    <div class="rpt-gap-card mb-2">
+                      <strong>Control ID:</strong> {{ gap.control_id }}<br>
+                      <strong>Summary:</strong> {{ gap.control_summary }}<br>
+                      <strong>Risk Level:</strong> {{ gap.risk_level }}<br>
+                      <strong>Affected Pages:</strong> {{ gap.affected_pages|join(', ') }}<br>
+                      <strong>Occurrences:</strong> {{ gap.num_occurrences }}<br>
+                      <strong>Example Quote:</strong> {{ gap.example_quote }}<br>
+                      <strong>Reason:</strong> {{ gap.consolidated_reason }}<br>
+                      <strong>Recommendation:</strong> {{ gap.consolidated_recommendation }}<br>
+                      <strong>Confidence:</strong> {{ gap.confidence }}
+                      <div class="feedback-actions finding-feedback"
+                           data-finding-key="doc{{ item.doc.id }}_legacy{{ result.id }}_gap_{{ gap.control_id|default('na') }}_{{ loop.index0 }}"
+                           data-control-id="{{ gap.control_id|default('') }}"
+                           data-confidence="{{ gap.confidence|default('') }}"
+                           data-source-quote="{{ gap.example_quote|default('')|e }}">
+                        <button class="feedback-btn verify" onclick="submitDocumentsFindingFeedback(this, 'verified')">✅ Verify</button>
+                        <button class="feedback-btn dismiss" onclick="submitDocumentsFindingFeedback(this, 'dismissed')">❌ Dismiss</button>
+                        <span class="feedback-status"></span>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+                <!-- Risk Assessment -->
+                {% if report.risk_assessment is defined and report.risk_assessment|length > 0 %}
+                <div class="report-block mb-4">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>⚠️ Risk Assessment</span>
+                    </div>
+                  </div>
+                  <div class="report-block-body collapsed">
+                    <ul class="list-disc ml-5 text-sm text-gray-700">
+                      {% for risk in report.risk_assessment %}
+                        <li>
+                          <span class="font-semibold">{{ risk.risk_title if risk.risk_title is defined else risk.title if risk.title is defined else 'Risk' }}</span>: {{ risk.risk_level if risk.risk_level is defined else risk.level if risk.level is defined else 'N/A' }}<br>
+                          <span class="text-xs text-gray-600">{{ risk.description if risk.description is defined else '' }}</span>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+                {% endif %}
+                <!-- Heatmap -->
+                {% if report.heatmap is defined %}
+                <div class="report-block mb-4">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>🌡️ Risk Heat Map</span>
+                    </div>
+                  </div>
+                  <div class="report-block-body collapsed">
+                    <div class="overflow-x-auto">
+                      <table class="min-w-full text-xs border border-purple-300 rounded-lg">
+                        <thead class="bg-purple-200">
+                          <tr>
+                            {% for col in report.heatmap.columns %}
+                              <th class="px-2 py-1 border-b border-purple-300">{{ col }}</th>
+                            {% endfor %}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for row in report.heatmap.data %}
+                          <tr>
+                            {% for cell in row %}
+                              <td class="px-2 py-1 border-b border-purple-200">{{ cell }}</td>
+                            {% endfor %}
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+                <!-- Recommendations -->
+                {% if report.recommendations is defined and report.recommendations|length > 0 %}
+                <div class="report-block mb-4">
+                  <div class="report-block-header collapsed" onclick="toggleReportSection(this)">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                      <svg class="toggle-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      <span>✅ Recommendations</span>
+                    </div>
+                  </div>
+                  <div class="report-block-body collapsed">
+                    <ul class="list-disc ml-5 text-sm text-gray-700">
+                      {% for rec in report.recommendations %}
+                        <li>{{ rec.recommendation if rec.recommendation is defined else rec }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        </div><!-- END COLLAPSIBLE CONTENT -->
+
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p class="text-gray-500">No documents found.</p>
+    {% endif %}
+
+
+    <!-- ===== SHARED WITH ME ===== -->
+    {% if shared_documents and shared_documents|length > 0 %}
+    <div id="shared-with-me" class="mt-12">
+      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+        </svg>
+        Shared With Me
+      </h2>
+      <div class="space-y-4">
+        {% for sdoc in shared_documents %}
+        <div id="shared-doc-{{ sdoc.id }}" class="bg-white rounded-2xl shadow border border-purple-100 p-6 flex items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-gray-900">{{ sdoc.documentTitle }}</h3>
+            <p class="text-sm text-gray-500 mt-1">Shared by <strong>{{ sdoc.owner_name }}</strong> &middot; Invited: {{ sdoc.invited_at[:10] if sdoc.invited_at else 'N/A' }}</p>
+          </div>
+          <div class="flex items-center gap-3">
+            {% set rev = sdoc.Review %}
+            <span class="px-3 py-1 text-xs font-semibold rounded-full {% if rev == 'Compliant' %}bg-green-100 text-green-700{% elif rev == 'Under Review' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %}">
+              {{ rev }}
+            </span>
+            <a href="/viewer/document/{{ sdoc.id }}"
+               class="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition text-sm">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              View
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+  
+
+  </div><!-- end main content -->
+</div><!-- end flex -->
+
+<!-- ===================================================
+     MODALS
+     =================================================== -->
+
+<!-- 1. Invite Viewer Modal -->
+<div id="inviteModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+  <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+  <div class="relative bg-white border border-purple-200 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 z-10">
+    <h2 class="text-2xl font-bold text-purple-600 mb-1">Invite Viewer</h2>
+    <p id="inviteDocTitle" class="text-sm text-gray-500 mb-5"></p>
+    <input id="inviteEmail" type="email" placeholder="viewer@example.com"
+           class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 mb-4" />
+    <p class="text-xs text-gray-400 mb-5">The invited user must already have a ComplyAI account. They will receive a dashboard notification and can view the full assessment in read-only mode.</p>
+    <div id="inviteError" class="hidden text-red-600 text-sm mb-3"></div>
+    <div id="inviteSuccess" class="hidden text-green-600 text-sm mb-3"></div>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal('inviteModal')" class="px-6 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Cancel</button>
+      <button onclick="submitInvite()" class="px-6 py-2 bg-purple-600 text-white rounded-xl font-semibold shadow hover:bg-purple-700 transition">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Manage Viewers Modal -->
+<div id="viewersModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+  <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+  <div class="relative bg-white border border-purple-200 rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-8 z-10">
+    <h2 class="text-2xl font-bold text-purple-600 mb-5">Current Viewers</h2>
+    <div id="viewersList" class="space-y-3 max-h-80 overflow-y-auto mb-4">
+      <p class="text-gray-400 text-sm text-center py-6">Loading...</p>
+    </div>
+    <div class="flex justify-end">
+      <button onclick="closeModal('viewersModal')" class="px-6 py-2 bg-purple-600 text-white rounded-xl font-semibold shadow hover:bg-purple-700 transition">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Create Share Link Modal -->
+<div id="shareModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+  <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+  <div class="relative bg-white border border-purple-200 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 z-10">
+    <h2 class="text-2xl font-bold text-purple-600 mb-1">Share Section</h2>
+    <p id="shareSectionName" class="text-sm text-purple-500 font-semibold mb-5"></p>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Link Expiry (optional)</label>
+    <select id="shareExpiry" class="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 mb-5">
+      <option value="">No expiry</option>
+      <option value="1">1 hour</option>
+      <option value="24">24 hours</option>
+      <option value="72">3 days</option>
+      <option value="168">7 days</option>
+    </select>
+    <div id="shareResult" class="hidden mb-4">
+      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Share Link</label>
+      <div class="flex gap-2">
+        <input id="shareLinkUrl" type="text" readonly
+               class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 font-mono" />
+        <button onclick="copyShareLink()" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition">Copy</button>
+      </div>
+      <p class="text-xs text-green-600 mt-2">Link created! Anyone with this link can view the section.</p>
+    </div>
+    <div id="shareError" class="hidden text-red-600 text-sm mb-3"></div>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal('shareModal')" class="px-6 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Close</button>
+      <button id="createShareBtn" onclick="submitCreateShareLink()" class="px-6 py-2 bg-purple-600 text-white rounded-xl font-semibold shadow hover:bg-purple-700 transition">Generate Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Manage Share Links Modal -->
+<div id="shareLinksModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+  <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+  <div class="relative bg-white border border-purple-200 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 z-10">
+    <h2 class="text-purple-600 text-2xl font-bold mb-5">Active Share Links</h2>
+    <div id="shareLinksList" class="space-y-3 max-h-96 overflow-y-auto mb-4">
+      <p class="text-gray-400 text-sm text-center py-6">Loading...</p>
+    </div>
+    <div class="flex justify-end">
+      <button onclick="closeModal('shareLinksModal')" class="px-5 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Edit Report Modal -->
+<div id="editReportModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+  <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+  <div class="relative bg-white border border-purple-200 rounded-2xl shadow-2xl w-full max-w-4xl mx-4 p-8 z-10 max-h-[90vh] overflow-y-auto">
+    <h2 class="text-purple-600 text-2xl font-bold mb-5">Edit Compliance Report</h2>
+    
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200 mb-6">
+      <button onclick="switchEditTab('org')" id="tab-org" class="edit-tab px-4 py-2 font-semibold text-purple-600 border-b-2 border-purple-600">Organization</button>
+      <button onclick="switchEditTab('summary')" id="tab-summary" class="edit-tab px-4 py-2 font-semibold text-gray-500 hover:text-purple-600">Summary</button>
+      <button onclick="switchEditTab('gaps')" id="tab-gaps" class="edit-tab px-4 py-2 font-semibold text-gray-500 hover:text-purple-600">Gap Analysis</button>
+      <button onclick="switchEditTab('risks')" id="tab-risks" class="edit-tab px-4 py-2 font-semibold text-gray-500 hover:text-purple-600">Risk Assessment</button>
+      <button onclick="switchEditTab('recs')" id="tab-recs" class="edit-tab px-4 py-2 font-semibold text-gray-500 hover:text-purple-600">Recommendations</button>
+    </div>
+
+    <!-- Organization Info Tab -->
+    <div id="edit-panel-org" class="edit-panel">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Organization Name</label>
+          <input type="text" id="edit-org-name" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+          <input type="text" id="edit-org-industry" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Assessment Scope</label>
+          <input type="text" id="edit-org-scope" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Organization Size</label>
+          <input type="text" id="edit-org-size" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Tab -->
+    <div id="edit-panel-summary" class="edit-panel hidden">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Compliance Percentage (%)</label>
+          <input type="number" step="0.1" min="0" max="100" id="edit-compliance-pct" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Overall Risk Score (0-10)</label>
+          <input type="number" step="0.1" min="0" max="10" id="edit-risk-score" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Total Gaps</label>
+          <input type="number" min="0" id="edit-total-gaps" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Critical Findings</label>
+          <input type="number" min="0" id="edit-critical-findings" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+      </div>
+    </div>
+
+    <!-- Gap Analysis Tab -->
+    <div id="edit-panel-gaps" class="edit-panel hidden">
+      <div class="flex justify-between items-center mb-4">
+        <p class="text-sm text-gray-600">Edit compliance gaps identified in the report.</p>
+        <button onclick="addGapItem()" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-200 transition">+ Add Gap</button>
+      </div>
+      <div id="edit-gaps-list" class="space-y-4 max-h-80 overflow-y-auto">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Risk Assessment Tab -->
+    <div id="edit-panel-risks" class="edit-panel hidden">
+      <div class="flex justify-between items-center mb-4">
+        <p class="text-sm text-gray-600">Edit risk assessment items.</p>
+        <button onclick="addRiskItem()" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-200 transition">+ Add Risk</button>
+      </div>
+      <div id="edit-risks-list" class="space-y-4 max-h-80 overflow-y-auto">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Recommendations Tab -->
+    <div id="edit-panel-recs" class="edit-panel hidden">
+      <div class="flex justify-between items-center mb-4">
+        <p class="text-sm text-gray-600">Edit recommendations for addressing compliance gaps.</p>
+        <button onclick="addRecItem()" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-200 transition">+ Add Recommendation</button>
+      </div>
+      <div id="edit-recs-list" class="space-y-4 max-h-80 overflow-y-auto">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="editReportError" class="hidden text-red-600 text-sm mt-4 p-3 bg-red-50 rounded-lg"></div>
+    <div id="editReportSuccess" class="hidden text-green-600 text-sm mt-4 p-3 bg-green-50 rounded-lg"></div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 justify-end mt-6 pt-4 border-t border-gray-200">
+      <button onclick="closeModal('editReportModal')" class="px-6 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Cancel</button>
+      <button onclick="saveReportEdits()" class="px-6 py-2 bg-purple-600 text-white rounded-xl font-semibold shadow hover:bg-purple-700 transition">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share btn style -->
+<style>
+  .share-section-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .share-section-btn:hover { background: rgba(255,255,255,0.35); }
+
+  #doc-policy-chat-panel {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 380px;
+    height: 520px;
+    max-width: calc(100vw - 48px);
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    display: none;
+    flex-direction: column;
+    z-index: 9999;
+    overflow: hidden;
+  }
+
+  #doc-policy-chat-panel.visible {
+    display: flex;
+  }
+
+  .doc-policy-chat-header {
+    background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+    color: white;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .doc-policy-chat-title {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .doc-policy-chat-subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 2px;
+  }
+
+  .doc-policy-chat-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .doc-policy-chat-icon-btn {
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 8px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .doc-policy-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    background: #f9fafb;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .doc-policy-message {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .doc-policy-message.user {
+    align-items: flex-end;
+  }
+
+  .doc-policy-message.assistant {
+    align-items: flex-start;
+  }
+
+  .doc-policy-message-bubble {
+    max-width: 80%;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+
+  .doc-policy-message.user .doc-policy-message-bubble {
+    background: #6D28D9;
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .doc-policy-message.assistant .doc-policy-message-bubble {
+    background: #e5e7eb;
+    color: #1f2937;
+    border-bottom-left-radius: 4px;
+  }
+
+  .doc-policy-chat-input-wrap {
+    border-top: 1px solid #e5e7eb;
+    padding: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
+  #doc-policy-chat-input {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    padding: 9px 14px;
+    outline: none;
+    font-size: 14px;
+  }
+
+  #doc-policy-chat-send {
+    border: none;
+    background: #6D28D9;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  /* ---- Sidebar ---- */
+  const SIDEBAR_STATE_KEY = 'complyai_sidebar_collapsed';
+
+  function applySidebarState() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    const isCollapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === '1';
+    sidebar.classList.toggle('collapsed', isCollapsed);
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    const isCollapsed = !sidebar.classList.contains('collapsed');
+    sidebar.classList.toggle('collapsed', isCollapsed);
+    localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? '1' : '0');
+  }
+
+  document.addEventListener('DOMContentLoaded', applySidebarState);
+
+  /* ---- Card toggle ---- */
+  function toggleCard(btn) {
+    const content = btn.nextElementSibling;
+    const text = btn.querySelector('.toggle-text');
+    const icon = btn.querySelector('.toggle-icon');
+    if (content.classList.contains('hidden')) {
+      content.classList.remove('hidden');
+      text.textContent = 'See Less';
+      icon.style.transform = 'rotate(180deg)';
+    } else {
+      content.classList.add('hidden');
+      text.textContent = 'See More';
+      icon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  function toggleHistory(btn, docId) {
+    const panel = document.getElementById(`history-${docId}`);
+    if (!panel) return;
+
+    const card = btn.closest('.bg-white.rounded-2xl');
+    const cardContent = card ? card.querySelector('.card-content') : null;
+    const cardToggleBtn = card ? card.querySelector('button[onclick="toggleCard(this)"]') : null;
+
+    if (cardContent && cardContent.classList.contains('hidden') && cardToggleBtn) {
+      toggleCard(cardToggleBtn);
+    }
+
+    panel.classList.toggle('hidden');
+
+    const label = btn.querySelector('.history-toggle-text');
+    if (label) {
+      label.textContent = panel.classList.contains('hidden') ? 'View History' : 'Hide History';
+    }
+
+    if (!panel.classList.contains('hidden')) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  async function compareVersionScores(activeDocId, historicalDocId) {
+    const resultPanel = document.getElementById(`compare-result-${activeDocId}-${historicalDocId}`);
+    try {
+      const res = await fetch(`/api/documents/compare-scores?active_document_id=${activeDocId}&historical_document_id=${historicalDocId}`, {
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (resultPanel) {
+          resultPanel.classList.remove('hidden');
+          resultPanel.querySelector('.compare-active-score').textContent = '';
+          resultPanel.querySelector('.compare-historical-score').textContent = '';
+          resultPanel.querySelector('.compare-delta').textContent = 'Comparison failed';
+          resultPanel.querySelector('.compare-note').textContent = data.error || 'Failed to compare scores.';
+        }
+        return;
+      }
+
+      const active = data.active_score;
+      const historical = data.historical_score;
+      const delta = data.delta;
+
+      if (!resultPanel) {
+        return;
+      }
+
+      const formatScore = (value) => value === null || value === undefined ? 'N/A' : `${Number(value).toFixed(1)}%`;
+      const formatDelta = (value) => value === null || value === undefined ? 'N/A' : `${value > 0 ? '+' : ''}${Number(value).toFixed(1)}%`;
+
+      resultPanel.classList.remove('hidden');
+      resultPanel.querySelector('.compare-active-score').textContent = `Active Version Score: ${formatScore(active)}${data.active_score_source ? ` (${data.active_score_source})` : ''}`;
+      resultPanel.querySelector('.compare-historical-score').textContent = `Historical Version Score: ${formatScore(historical)}${data.historical_score_source ? ` (${data.historical_score_source})` : ''}`;
+      resultPanel.querySelector('.compare-delta').textContent = `Improvement (Delta): ${formatDelta(delta)}`;
+      resultPanel.querySelector('.compare-note').textContent = data.note || '';
+    } catch (err) {
+      if (resultPanel) {
+        resultPanel.classList.remove('hidden');
+        resultPanel.querySelector('.compare-active-score').textContent = '';
+        resultPanel.querySelector('.compare-historical-score').textContent = '';
+        resultPanel.querySelector('.compare-delta').textContent = 'Comparison unavailable';
+        resultPanel.querySelector('.compare-note').textContent = 'Could not compare scores right now.';
+      }
+    }
+  }
+
+  /* ---- Report Section Toggle ---- */
+  function toggleReportSection(header) {
+    const body = header.nextElementSibling;
+    const isCollapsed = body.classList.contains('collapsed');
+    
+    if (isCollapsed) {
+      // Expand
+      body.classList.remove('collapsed');
+      header.classList.remove('collapsed');
+      // Reset max-height for smooth animation
+      body.style.maxHeight = body.scrollHeight + 'px';
+      setTimeout(() => { body.style.maxHeight = 'none'; }, 300);
+    } else {
+      // Collapse
+      body.style.maxHeight = body.scrollHeight + 'px';
+      // Force reflow
+      body.offsetHeight;
+      body.classList.add('collapsed');
+      header.classList.add('collapsed');
+    }
+  }
+
+  function expandAllSections(container) {
+    const headers = container.querySelectorAll('.report-block-header');
+    headers.forEach(header => {
+      const body = header.nextElementSibling;
+      if (body && body.classList.contains('collapsed')) {
+        body.classList.remove('collapsed');
+        header.classList.remove('collapsed');
+        body.style.maxHeight = body.scrollHeight + 'px';
+        setTimeout(() => { body.style.maxHeight = 'none'; }, 300);
+      }
+    });
+  }
+
+  function collapseAllSections(container) {
+    const headers = container.querySelectorAll('.report-block-header');
+    headers.forEach(header => {
+      const body = header.nextElementSibling;
+      if (body && !body.classList.contains('collapsed')) {
+        body.style.maxHeight = body.scrollHeight + 'px';
+        body.offsetHeight; // Force reflow
+        body.classList.add('collapsed');
+        header.classList.add('collapsed');
+      }
+    });
+  }
+
+  /* ---- Hash scroll ---- */
+  window.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash) {
+      const target = document.querySelector(window.location.hash);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('bg-yellow-100');
+        setTimeout(() => target.classList.remove('bg-yellow-100'), 2000);
+        const btn = target.querySelector('button[onclick="toggleCard(this)"]');
+        if (btn) toggleCard(btn);
+      }
+    }
+  });
+
+  /* ---- Modal helpers ---- */
+  let _currentDocId = null;
+  let _currentSection = null;
+
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+
+  /* ---- Styled Alert (matches login aesthetic) ---- */
+  function showStyledAlert(message, title = 'Notice') {
+    const existing = document.getElementById('styled-alert-modal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'styled-alert-modal';
+    modal.className = 'fixed inset-0 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white border border-purple-200 rounded-2xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center relative z-10">
+        <div class="text-purple-600 text-2xl font-bold mb-2">${title}</div>
+        <div class="text-gray-700 text-sm mb-6 text-center">${message}</div>
+        <button onclick="document.getElementById('styled-alert-modal').remove();" class="px-6 py-2 bg-purple-600 text-white rounded-xl font-semibold shadow hover:bg-purple-700 transition">OK</button>
+      </div>
+      <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  /* ---- Invite Viewer ---- */
+  function openDocInviteModal(docId, docTitle) {
+    _currentDocId = docId;
+    document.getElementById('inviteDocTitle').textContent = 'Document: ' + docTitle;
+    document.getElementById('inviteEmail').value = '';
+    document.getElementById('inviteError').classList.add('hidden');
+    document.getElementById('inviteSuccess').classList.add('hidden');
+    document.getElementById('inviteModal').classList.remove('hidden');
+  }
+
+  async function submitInvite() {
+    const email = document.getElementById('inviteEmail').value.trim();
+    const errEl = document.getElementById('inviteError');
+    const okEl  = document.getElementById('inviteSuccess');
+    errEl.classList.add('hidden');
+    okEl.classList.add('hidden');
+    if (!email) { errEl.textContent = 'Please enter an email address.'; errEl.classList.remove('hidden'); return; }
+    try {
+      const res = await fetch('/api/collaborators/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ document_id: _currentDocId, email })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        okEl.textContent = data.message || 'Invitation sent!';
+        okEl.classList.remove('hidden');
+        document.getElementById('inviteEmail').value = '';
+      } else {
+        errEl.textContent = data.error || 'Failed to send invitation.';
+        errEl.classList.remove('hidden');
+      }
+    } catch {
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  /* ---- Manage Viewers ---- */
+  async function openViewersModal(docId) {
+    _currentDocId = docId;
+    document.getElementById('viewersModal').classList.remove('hidden');
+    const listEl = document.getElementById('viewersList');
+    listEl.innerHTML = '<p class="text-gray-400 text-sm text-center py-6">Loading...</p>';
+    try {
+      const res = await fetch('/api/collaborators/' + docId);
+      const data = await res.json();
+      if (!res.ok) { listEl.innerHTML = '<p class="text-red-500 text-sm">' + (data.error || 'Error') + '</p>'; return; }
+      if (!data.collaborators.length) {
+        listEl.innerHTML = '<p class="text-gray-400 text-sm text-center py-6">No viewers invited yet.</p>'; return;
+      }
+      listEl.innerHTML = data.collaborators.map(c => `
+        <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+          <div>
+            <p class="font-medium text-gray-800 text-sm">${c.viewer_email}</p>
+            <p class="text-xs text-gray-400">Invited: ${c.invited_at ? c.invited_at.substring(0,10) : 'N/A'}</p>
+          </div>
+          <button onclick="revokeViewer(${c.id})" class="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-200 transition">Revoke</button>
+        </div>
+      `).join('');
+    } catch {
+      listEl.innerHTML = '<p class="text-red-500 text-sm">Failed to load viewers.</p>';
+    }
+  }
+
+  async function revokeViewer(collabId) {
+    if (!confirm('Revoke this viewer\'s access?')) return;
+    const res = await fetch('/api/collaborators/revoke/' + collabId, { method: 'POST' });
+    if (res.ok) { openViewersModal(_currentDocId); }
+    else { showStyledAlert('Failed to revoke access.', 'Error'); }
+  }
+
+  /* ---- Section Share Links ---- */
+  const SECTION_NAMES = {
+    org_info: 'Organization Info', risk_appetite: 'Risk Appetite',
+    questionnaire: 'Questionnaire Responses', heatmap: 'Risk Heat Map', report: 'Final Report Preview'
+  };
+
+  function openShareModal(docId, section) {
+    _currentDocId = docId;
+    _currentSection = section;
+    document.getElementById('shareSectionName').textContent = SECTION_NAMES[section] || section;
+    document.getElementById('shareExpiry').value = '';
+    document.getElementById('shareResult').classList.add('hidden');
+    document.getElementById('shareError').classList.add('hidden');
+    document.getElementById('createShareBtn').classList.remove('hidden');
+    document.getElementById('shareModal').classList.remove('hidden');
+  }
+
+  async function submitCreateShareLink() {
+    const expiry = document.getElementById('shareExpiry').value;
+    const errEl  = document.getElementById('shareError');
+    errEl.classList.add('hidden');
+    try {
+      const res = await fetch('/api/share-link/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ document_id: _currentDocId, section: _currentSection, expires_in_hours: expiry || null })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const fullUrl = window.location.origin + data.url;
+        document.getElementById('shareLinkUrl').value = fullUrl;
+        document.getElementById('shareResult').classList.remove('hidden');
+        document.getElementById('createShareBtn').classList.add('hidden');
+      } else {
+        errEl.textContent = data.error || 'Failed to create link.';
+        errEl.classList.remove('hidden');
+      }
+    } catch {
+      errEl.textContent = 'Network error.';
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  function copyShareLink() {
+    const input = document.getElementById('shareLinkUrl');
+    input.select();
+    document.execCommand('copy');
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  }
+
+  /* ---- Manage Share Links ---- */
+  async function openShareLinksModal(docId) {
+    _currentDocId = docId;
+    document.getElementById('shareLinksModal').classList.remove('hidden');
+    await refreshShareLinks();
+  }
+
+  async function refreshShareLinks() {
+    const listEl = document.getElementById('shareLinksList');
+    listEl.innerHTML = '<p class="text-gray-400 text-sm text-center py-6">Loading...</p>';
+    try {
+      const res = await fetch('/api/share-links/' + _currentDocId);
+      const data = await res.json();
+      if (!res.ok) { listEl.innerHTML = '<p class="text-red-500 text-sm">' + (data.error || 'Error') + '</p>'; return; }
+      if (!data.links.length) {
+        listEl.innerHTML = '<p class="text-gray-400 text-sm text-center py-6">No active share links. Use the 🔗 Share buttons on each section to create one.</p>'; return;
+      }
+      listEl.innerHTML = data.links.map(lnk => {
+        const url = window.location.origin + '/share/' + lnk.token;
+        const expired = lnk.is_expired ? '<span class="text-red-500 text-xs ml-2">(Expired)</span>' : '';
+        const expLabel = lnk.expires_at ? lnk.expires_at.substring(0,16) : 'Never';
+        return `
+          <div class="bg-gray-50 rounded-xl px-4 py-3">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">${lnk.section_name}${expired}</p>
+                <p class="text-xs text-gray-400">Expires: ${expLabel} &middot; Accessed: ${lnk.access_count} time(s)</p>
+              </div>
+              <button onclick="revokeLink(${lnk.id})" class="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-200 transition flex-shrink-0">Revoke</button>
+            </div>
+            <div class="flex gap-2">
+              <input type="text" readonly value="${url}" class="flex-1 border border-gray-200 rounded-lg px-3 py-1 text-xs bg-white font-mono text-gray-600" />
+              <button onclick="copyText('${url}',this)" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold hover:bg-purple-200 transition">Copy</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch {
+      listEl.innerHTML = '<p class="text-red-500 text-sm">Failed to load share links.</p>';
+    }
+  }
+
+  async function revokeLink(linkId) {
+    if (!confirm('Revoke this share link? Anyone with the link will no longer be able to access it.')) return;
+    const res = await fetch('/api/share-links/revoke/' + linkId, { method: 'POST' });
+    if (res.ok) { await refreshShareLinks(); }
+    else { showStyledAlert('Failed to revoke link.', 'Error'); }
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+  }
+
+  /* ---- Edit Report Modal ---- */
+  let _currentReportId = null;
+  let _currentReportData = null;
+
+  // Helper function to open edit modal from document ID (finds first report for the doc)
+  async function openEditReportModalForDoc(docId) {
+    try {
+      // Find the first report card for this document
+      const res = await fetch('/api/document/' + docId + '/reports');
+      if (!res.ok) {
+        showStyledAlert('No report found for this document.', 'Error');
+        return;
+      }
+      const data = await res.json();
+      if (data.reports && data.reports.length > 0) {
+        openEditReportModal(data.reports[0].id);
+      } else {
+        showStyledAlert('No report found for this document.', 'Error');
+      }
+    } catch (e) {
+      showStyledAlert('Failed to load report: ' + e.message, 'Error');
+    }
+  }
+
+  function switchEditTab(tab) {
+    // Hide all panels and deactivate tabs
+    document.querySelectorAll('.edit-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.edit-tab').forEach(t => {
+      t.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600');
+      t.classList.add('text-gray-500');
+    });
+    // Show selected panel and activate tab
+    document.getElementById('edit-panel-' + tab).classList.remove('hidden');
+    const activeTab = document.getElementById('tab-' + tab);
+    activeTab.classList.remove('text-gray-500');
+    activeTab.classList.add('text-purple-600', 'border-b-2', 'border-purple-600');
+  }
+
+  async function openEditReportModal(reportId) {
+    _currentReportId = reportId;
+    
+    // Clear messages
+    document.getElementById('editReportError').classList.add('hidden');
+    document.getElementById('editReportSuccess').classList.add('hidden');
+    
+    // Show modal with loading state
+    document.getElementById('editReportModal').classList.remove('hidden');
+    
+    try {
+      // Fetch report data from API
+      const res = await fetch('/api/report/' + reportId + '/data');
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to load report');
+      }
+      _currentReportData = await res.json();
+
+      // Populate Organization Info
+      document.getElementById('edit-org-name').value = _currentReportData.organization_name || '';
+      document.getElementById('edit-org-industry').value = _currentReportData.industry || '';
+      document.getElementById('edit-org-scope').value = _currentReportData.scope || '';
+      document.getElementById('edit-org-size').value = _currentReportData.size || '';
+
+      // Populate Summary (parse from compliance_summary JSON)
+      const summary = typeof _currentReportData.compliance_summary === 'string' 
+        ? JSON.parse(_currentReportData.compliance_summary || '{}') 
+        : (_currentReportData.compliance_summary || {});
+      document.getElementById('edit-compliance-pct').value = summary.overall_compliance_percentage || '';
+      document.getElementById('edit-risk-score').value = summary.overall_risk_score || '';
+      document.getElementById('edit-total-gaps').value = summary.total_gaps || '';
+      document.getElementById('edit-critical-findings').value = summary.critical_findings || '';
+
+      // Populate Gap Analysis
+      const gaps = typeof _currentReportData.gap_analysis === 'string'
+        ? JSON.parse(_currentReportData.gap_analysis || '[]')
+        : (_currentReportData.gap_analysis || []);
+      populateGapsList(gaps);
+
+      // Populate Risk Assessment
+      const risks = typeof _currentReportData.risk_assessment === 'string'
+        ? JSON.parse(_currentReportData.risk_assessment || '[]')
+        : (_currentReportData.risk_assessment || []);
+      populateRisksList(risks);
+
+      // Populate Recommendations
+      const recs = typeof _currentReportData.recommendations === 'string'
+        ? JSON.parse(_currentReportData.recommendations || '[]')
+        : (_currentReportData.recommendations || []);
+      populateRecsList(recs);
+
+      // Reset to first tab
+      switchEditTab('org');
+    } catch (e) {
+      document.getElementById('editReportError').textContent = e.message;
+      document.getElementById('editReportError').classList.remove('hidden');
+    }
+  }
+
+  function populateGapsList(gaps) {
+    const container = document.getElementById('edit-gaps-list');
+    container.innerHTML = '';
+    if (Array.isArray(gaps)) {
+      gaps.forEach((gap, idx) => addGapItem(gap));
+    }
+    if (container.children.length === 0) {
+      container.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">No gaps found. Click "Add Gap" to create one.</p>';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function addGapItem(gap = null) {
+    const container = document.getElementById('edit-gaps-list');
+    if (container.querySelector('p.text-gray-400')) container.innerHTML = '';
+    const idx = container.children.length;
+    const div = document.createElement('div');
+    div.className = 'gap-item bg-gray-50 rounded-lg p-4 border border-gray-200';
+    const riskLevel = gap?.risk_level || 'Medium';
+    div.innerHTML = `
+      <div class="flex justify-between items-start mb-3">
+        <span class="text-sm font-semibold text-gray-700">Gap #${idx + 1}</span>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mb-3">
+        <input type="text" placeholder="Control ID (e.g. AC-1)" value="${escapeHtml(gap?.control_id)}" class="gap-control-id w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        <input type="text" placeholder="Control Title" value="${escapeHtml(gap?.control_title)}" class="gap-control-title w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        <select class="gap-risk-level w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+          <option value="Low" ${riskLevel === 'Low' ? 'selected' : ''}>Low</option>
+          <option value="Medium" ${riskLevel === 'Medium' ? 'selected' : ''}>Medium</option>
+          <option value="High" ${riskLevel === 'High' ? 'selected' : ''}>High</option>
+          <option value="Critical" ${riskLevel === 'Critical' ? 'selected' : ''}>Critical</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <input type="text" placeholder="Category" value="${escapeHtml(gap?.category)}" class="gap-category w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        <input type="text" placeholder="NIST Function" value="${escapeHtml(gap?.nist_function)}" class="gap-nist-function w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+      </div>
+      <textarea placeholder="Description" class="gap-description w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 mb-2" rows="2">${escapeHtml(gap?.description)}</textarea>
+      <textarea placeholder="Reasoning" class="gap-reasoning w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500" rows="2">${escapeHtml(gap?.reasoning)}</textarea>
+      <input type="hidden" class="gap-id" value="${escapeHtml(gap?.gap_id)}">
+    `;
+    container.appendChild(div);
+  }
+
+  function populateRisksList(risks) {
+    const container = document.getElementById('edit-risks-list');
+    container.innerHTML = '';
+    if (Array.isArray(risks)) {
+      risks.forEach((risk, idx) => addRiskItem(risk));
+    }
+    if (container.children.length === 0) {
+      container.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">No risks found. Click "Add Risk" to create one.</p>';
+    }
+  }
+
+  function addRiskItem(risk = null) {
+    const container = document.getElementById('edit-risks-list');
+    if (container.querySelector('p.text-gray-400')) container.innerHTML = '';
+    const idx = container.children.length;
+    const div = document.createElement('div');
+    div.className = 'risk-item bg-gray-50 rounded-lg p-4 border border-gray-200';
+    const riskLevel = risk?.risk_level || 'Medium';
+    div.innerHTML = `
+      <div class="flex justify-between items-start mb-3">
+        <span class="text-sm font-semibold text-gray-700">Risk #${idx + 1}</span>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <input type="text" placeholder="Title" value="${escapeHtml(risk?.title)}" class="risk-title w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        <select class="risk-level w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+          <option value="Low" ${riskLevel === 'Low' ? 'selected' : ''}>Low</option>
+          <option value="Medium" ${riskLevel === 'Medium' ? 'selected' : ''}>Medium</option>
+          <option value="High" ${riskLevel === 'High' ? 'selected' : ''}>High</option>
+          <option value="Critical" ${riskLevel === 'Critical' ? 'selected' : ''}>Critical</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <input type="text" placeholder="Likelihood" value="${escapeHtml(risk?.likelihood)}" class="risk-likelihood w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        <input type="text" placeholder="Impact" value="${escapeHtml(risk?.impact)}" class="risk-impact w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+      </div>
+      <textarea placeholder="Description" class="risk-description w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 mb-2" rows="2">${escapeHtml(risk?.description)}</textarea>
+      <textarea placeholder="Business Impact" class="risk-business-impact w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500" rows="2">${escapeHtml(risk?.business_impact)}</textarea>
+      <input type="hidden" class="risk-id" value="${escapeHtml(risk?.risk_id)}">
+    `;
+    container.appendChild(div);
+  }
+
+  function populateRecsList(recs) {
+    const container = document.getElementById('edit-recs-list');
+    container.innerHTML = '';
+    if (Array.isArray(recs)) {
+      recs.forEach((rec, idx) => addRecItem(rec));
+    }
+    if (container.children.length === 0) {
+      container.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">No recommendations found. Click "Add Recommendation" to create one.</p>';
+    }
+  }
+
+  function addRecItem(rec = null) {
+    const container = document.getElementById('edit-recs-list');
+    if (container.querySelector('p.text-gray-400')) container.innerHTML = '';
+    const idx = container.children.length;
+    const div = document.createElement('div');
+    div.className = 'rec-item bg-gray-50 rounded-lg p-4 border border-gray-200';
+    const priorityVal = rec?.priority || 'Medium';
+    div.innerHTML = `
+      <div class="flex justify-between items-start mb-3">
+        <span class="text-sm font-semibold text-gray-700">Rec #${idx + 1}</span>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <input type="text" placeholder="Title" value="${(rec?.title || '').replace(/"/g, '&quot;')}" class="rec-title w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+        <select class="rec-priority w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500">
+          <option value="Low" ${priorityVal === 'Low' ? 'selected' : ''}>Low</option>
+          <option value="Medium" ${priorityVal === 'Medium' ? 'selected' : ''}>Medium</option>
+          <option value="High" ${priorityVal === 'High' ? 'selected' : ''}>High</option>
+          <option value="Critical" ${priorityVal === 'Critical' ? 'selected' : ''}>Critical</option>
+        </select>
+      </div>
+      <input type="text" placeholder="Estimated Effort" value="${escapeHtml(rec?.estimated_effort)}" class="rec-effort w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 mb-2">
+      <textarea placeholder="Description" class="rec-description w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500" rows="2">${escapeHtml(rec?.description)}</textarea>
+      <input type="hidden" class="rec-id" value="${escapeHtml(rec?.recommendation_id)}">
+    `;
+    container.appendChild(div);
+  }
+
+  async function saveReportEdits() {
+    const errEl = document.getElementById('editReportError');
+    const okEl = document.getElementById('editReportSuccess');
+    errEl.classList.add('hidden');
+    okEl.classList.add('hidden');
+
+    // Collect Organization Info
+    const orgData = {
+      organization_name: document.getElementById('edit-org-name').value.trim(),
+      industry: document.getElementById('edit-org-industry').value.trim(),
+      scope: document.getElementById('edit-org-scope').value.trim(),
+      size: document.getElementById('edit-org-size').value.trim()
+    };
+
+    // Collect Summary
+    const summaryData = {
+      overall_compliance_percentage: parseFloat(document.getElementById('edit-compliance-pct').value) || 0,
+      overall_risk_score: parseFloat(document.getElementById('edit-risk-score').value) || 0,
+      total_gaps: parseInt(document.getElementById('edit-total-gaps').value) || 0,
+      critical_findings: parseInt(document.getElementById('edit-critical-findings').value) || 0
+    };
+
+    // Collect Gaps (using actual model fields)
+    const gapsData = [];
+    document.querySelectorAll('#edit-gaps-list .gap-item').forEach((item, idx) => {
+      gapsData.push({
+        gap_id: item.querySelector('.gap-id')?.value || `GAP-${idx + 1}`,
+        control_id: item.querySelector('.gap-control-id').value.trim(),
+        control_title: item.querySelector('.gap-control-title').value.trim(),
+        category: item.querySelector('.gap-category').value.trim(),
+        nist_function: item.querySelector('.gap-nist-function').value.trim(),
+        description: item.querySelector('.gap-description').value.trim(),
+        reasoning: item.querySelector('.gap-reasoning').value.trim(),
+        risk_level: item.querySelector('.gap-risk-level').value
+      });
+    });
+
+    // Collect Risks (using actual model fields)
+    const risksData = [];
+    document.querySelectorAll('#edit-risks-list .risk-item').forEach((item, idx) => {
+      risksData.push({
+        risk_id: item.querySelector('.risk-id')?.value || `RISK-${idx + 1}`,
+        title: item.querySelector('.risk-title').value.trim(),
+        description: item.querySelector('.risk-description').value.trim(),
+        risk_level: item.querySelector('.risk-level').value,
+        likelihood: item.querySelector('.risk-likelihood').value.trim(),
+        impact: item.querySelector('.risk-impact').value.trim(),
+        business_impact: item.querySelector('.risk-business-impact').value.trim()
+      });
+    });
+
+    // Collect Recommendations (using actual model fields)
+    const recsData = [];
+    document.querySelectorAll('#edit-recs-list .rec-item').forEach((item, idx) => {
+      recsData.push({
+        recommendation_id: item.querySelector('.rec-id')?.value || `REC-${idx + 1}`,
+        title: item.querySelector('.rec-title').value.trim(),
+        priority: item.querySelector('.rec-priority').value,
+        description: item.querySelector('.rec-description').value.trim(),
+        estimated_effort: item.querySelector('.rec-effort').value.trim()
+      });
+    });
+
+    try {
+      const res = await fetch('/api/report/' + _currentReportId + '/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...orgData,
+          compliance_summary: summaryData,
+          gap_analysis: gapsData,
+          risk_assessment: risksData,
+          recommendations: recsData
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        okEl.textContent = 'Report updated successfully! Refreshing page...';
+        okEl.classList.remove('hidden');
+        setTimeout(() => { location.reload(); }, 1500);
+      } else {
+        errEl.textContent = data.error || 'Failed to save report.';
+        errEl.classList.remove('hidden');
+      }
+    } catch (e) {
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.classList.remove('hidden');
+    }
+  }
+
+</script>
+
+<div id="doc-policy-chat-panel" aria-label="Policy chatbot">
+  <div class="doc-policy-chat-header">
+    <div>
+      <div class="doc-policy-chat-title">Policy Chatbot</div>
+      <div class="doc-policy-chat-subtitle" id="doc-policy-chat-doc-title">Select a document to start</div>
+    </div>
+    <div class="doc-policy-chat-actions">
+      <button class="doc-policy-chat-icon-btn" onclick="policyDocChatClear()" title="Clear">🗑</button>
+      <button class="doc-policy-chat-icon-btn" onclick="closeDocPolicyChat()" title="Close">✕</button>
+    </div>
+  </div>
+  <div class="doc-policy-chat-body" id="doc-policy-chat-messages">
+    <div class="doc-policy-message assistant">
+      <div class="doc-policy-message-bubble">Open any document section and click "Chat with document" to ask policy and NIST questions.</div>
+    </div>
+  </div>
+  <div class="doc-policy-chat-input-wrap">
+    <input id="doc-policy-chat-input" type="text" placeholder="Ask about this document..." onkeypress="handleDocPolicyChatKeypress(event)">
+    <button id="doc-policy-chat-send" onclick="policyDocChatSend()">➤</button>
+  </div>
+</div>
+
+<script>
+  const policyDocApiBase = window.location.origin.startsWith('http') ? window.location.origin : '';
+  let activePolicyDoc = null;
+
+  function openDocChat(docId, docTitle) {
+    activePolicyDoc = { id: docId, title: docTitle || `Document ${docId}` };
+    document.getElementById('doc-policy-chat-doc-title').textContent = activePolicyDoc.title;
+    document.getElementById('doc-policy-chat-panel').classList.add('visible');
+    document.getElementById('doc-policy-chat-input').focus();
+  }
+
+  function closeDocPolicyChat() {
+    document.getElementById('doc-policy-chat-panel').classList.remove('visible');
+  }
+
+  function handleDocPolicyChatKeypress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      policyDocChatSend();
+    }
+  }
+
+  function policyDocChatAddMessage(content, isUser = false) {
+    const wrap = document.getElementById('doc-policy-chat-messages');
+    const msg = document.createElement('div');
+    msg.className = `doc-policy-message ${isUser ? 'user' : 'assistant'}`;
+    msg.innerHTML = `<div class="doc-policy-message-bubble">${content}</div>`;
+    wrap.appendChild(msg);
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  async function policyDocChatSend() {
+    const input = document.getElementById('doc-policy-chat-input');
+    const sendBtn = document.getElementById('doc-policy-chat-send');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const contextualMessage = activePolicyDoc
+      ? `Document Context: ${activePolicyDoc.title} (ID: ${activePolicyDoc.id})\n\nUser question: ${message}`
+      : message;
+
+    policyDocChatAddMessage(message, true);
+    input.value = '';
+    sendBtn.disabled = true;
+    sendBtn.textContent = '⏳';
+
+    try {
+      const response = await fetch(`${policyDocApiBase}/api/chatbot/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: contextualMessage })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        policyDocChatAddMessage(data.response || 'No response returned.');
+      } else {
+        policyDocChatAddMessage(data.error || 'Failed to get response.');
+      }
+    } catch (error) {
+      policyDocChatAddMessage('Connection error. Please try again.');
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = '➤';
+    }
+  }
+
+  function policyDocChatClear() {
+    fetch(`${policyDocApiBase}/api/chatbot/clear`, { method: 'POST' }).catch(() => {});
+    const wrap = document.getElementById('doc-policy-chat-messages');
+    wrap.innerHTML = `
+      <div class="doc-policy-message assistant">
+        <div class="doc-policy-message-bubble">Chat cleared. ${activePolicyDoc ? `Ask about ${activePolicyDoc.title}.` : 'Select a document and start chatting.'}</div>
+      </div>
+    `;
+  }
+</script>
+
+<script>
+  // Render compliance charts on documents page
+  (function() {
+    console.log('[CHART] Documents page: Initializing chart rendering');
+    
+    const loadScript = (src, cb) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = cb;
+      s.onerror = () => console.error('[CHART] Failed to load:', src);
+      document.head.appendChild(s);
+    };
+
+    const renderCharts = () => {
+      console.log('[CHART] renderCharts() called on documents page');
+      const canvases = Array.from(document.querySelectorAll('canvas[id^="complianceChart_"]'));
+      console.log('[CHART] Found', canvases.length, 'chart canvases');
+      
+      if (!canvases.length) {
+        console.warn('[CHART] No chart canvases found');
+        return;
+      }
+
+      canvases.forEach(async (cv, idx) => {
+        console.log('[CHART] Processing canvas', idx, cv.id);
+        const assessmentId = cv.getAttribute('data-assessment-id') || '';
+        const labels = ['Govern', 'Identify', 'Protect', 'Detect', 'Respond', 'Recover'];
+        const ctx = cv.getContext('2d');
+        
+        const parent = cv.parentElement;
+        if (parent) {
+          const w = parent.offsetWidth || 600;
+          const h = parent.offsetHeight || 400;
+          cv.width = w;
+          cv.height = h;
+          console.log('[CHART] Canvas size:', w, 'x', h);
+        }
+
+        const draw = (data) => {
+          const dataset = labels.map(l => data[l.toLowerCase()] ?? 0);
+          
+          if (cv.chartInstance) {
+            cv.chartInstance.destroy();
+          }
+
+          try {
+            cv.chartInstance = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Compliance %',
+                  data: dataset,
+                  backgroundColor: [
+                    '#4f46e5', '#10b981', '#f59e0b',
+                    '#ef4444', '#8b5cf6', '#06b6d4'
+                  ],
+                  borderRadius: 6,
+                  barThickness: 45
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'x',
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (ctx) => `Compliance: ${ctx.parsed.y.toFixed(1)}%`
+                    }
+                  }
+                },
+                scales: {
+                  y: { 
+                    beginAtZero: true, max: 100,
+                    ticks: { callback: v => v + '%' }
+                  },
+                  x: { grid: { display: false } }
+                }
+              }
+            });
+            console.log('[CHART] Chart rendered successfully');
+          } catch (e) {
+            console.error('[CHART] Chart error:', e);
+          }
+        };
+
+        if (!assessmentId) {
+          console.warn('[CHART] No assessment ID, rendering zeros');
+          const emptyData = {};
+          labels.forEach(l => emptyData[l.toLowerCase()] = 0);
+          draw(emptyData);
+          return;
+        }
+
+        // Try API with timeout
+        const timeoutId = setTimeout(() => {
+          console.warn('[CHART] API timeout, rendering zeros');
+          const empty = {};
+          labels.forEach(l => empty[l.toLowerCase()] = 0);
+          draw(empty);
+        }, 2000);
+
+        try {
+          console.log('[CHART] Fetching data for ID:', assessmentId);
+          const res = await fetch(`/api/assessments/${encodeURIComponent(assessmentId)}/compliance-summary`);
+          clearTimeout(timeoutId);
+          
+          if (!res.ok) {
+            console.warn('[CHART] API returned', res.status);
+            const emptyData = {};
+            labels.forEach(l => emptyData[l.toLowerCase()] = 0);
+            draw(emptyData);
+            return;
+          }
+          
+          const json = await res.json();
+          console.log('[CHART] API data:', json);
+          const emptyData = {};
+          labels.forEach(l => emptyData[l.toLowerCase()] = 0);
+          draw({...emptyData, ...json});
+        } catch (e) {
+          clearTimeout(timeoutId);
+          console.error('[CHART] Fetch error:', e);
+          const emptyData = {};
+          labels.forEach(l => emptyData[l.toLowerCase()] = 0);
+          draw(emptyData);
+        }
+      });
+    };
+
+    if (typeof Chart === 'undefined') {
+      console.log('[CHART] Loading Chart.js...');
+      loadScript('https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js', renderCharts);
+    } else {
+      console.log('[CHART] Chart.js already loaded');
+      renderCharts();
+    }
+  })();
+</script>
+
+<!-- Download Modal -->
+<div id="downloadModal" class="fixed inset-0 flex items-center justify-center hidden z-50">
+  <div class="absolute inset-0 bg-purple-100 opacity-30 pointer-events-none"></div>
+  <div class="relative bg-white border border-purple-200 rounded-2xl shadow-2xl w-11/12 max-w-lg p-8 z-10">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-purple-600 text-2xl font-bold">Download Report</h3>
+      <button onclick="closeDownloadModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
+      <select id="downloadReportType" class="w-full border border-purple-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-purple-400">
+        <option value="detailed">Detailed Compliance Report</option>
+        <option value="executive">Executive Summary</option>
+        <option value="improvement_plan">Cybersecurity Improvement Plan</option>
+        <option value="risk_register">Risk Register Only</option>
+      </select>
+    </div>
+
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Format</label>
+      <div class="flex gap-3">
+        <button id="downloadPdfBtn" onclick="performDownload('pdf')" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-xl font-semibold shadow hover:bg-purple-700 transition">PDF</button>
+        <button id="downloadDocxBtn" onclick="performDownload('docx')" class="flex-1 px-4 py-2 border border-purple-200 rounded-xl hover:bg-purple-50 transition">Word (.docx)</button>
+      </div>
+    </div>
+
+    <div class="text-right">
+      <button onclick="closeDownloadModal()" class="px-6 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const docsFeedbackApiBase = window.location.origin.startsWith('http') ? window.location.origin : '';
+
+  function applyFeedbackState(container, action) {
+    const verifyBtn = container.querySelector('.feedback-btn.verify');
+    const dismissBtn = container.querySelector('.feedback-btn.dismiss');
+    const statusEl = container.querySelector('.feedback-status');
+
+    if (verifyBtn) verifyBtn.style.opacity = action === 'verified' ? '1' : '0.6';
+    if (dismissBtn) dismissBtn.style.opacity = action === 'dismissed' ? '1' : '0.6';
+
+    if (statusEl) {
+      statusEl.textContent = action === 'verified'
+        ? 'Marked as verified'
+        : action === 'dismissed'
+          ? 'Marked as dismissed'
+          : '';
+    }
+  }
+
+  async function submitDocumentsFindingFeedback(buttonEl, action) {
+    const container = buttonEl.closest('.finding-feedback');
+    if (!container) return;
+
+    const payload = {
+      finding_key: container.dataset.findingKey,
+      control_id: container.dataset.controlId || '',
+      confidence: container.dataset.confidence || null,
+      source_quote: container.dataset.sourceQuote || '',
+      action
+    };
+
+    try {
+      const resp = await fetch(`${docsFeedbackApiBase}/api/findings/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        alert(data.error || 'Failed to save feedback');
+        return;
+      }
+      applyFeedbackState(container, action);
+    } catch (err) {
+      alert(`Feedback error: ${err.message || err}`);
+    }
+  }
+
+  async function loadDocumentsFeedbackStatus() {
+    const containers = Array.from(document.querySelectorAll('.finding-feedback[data-finding-key]'));
+    if (!containers.length) return;
+
+    const keys = containers.map(c => c.dataset.findingKey).filter(Boolean);
+
+    try {
+      const resp = await fetch(`${docsFeedbackApiBase}/api/findings/feedback/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ finding_keys: keys })
+      });
+      const data = await resp.json();
+      if (!resp.ok) return;
+
+      const statuses = data.statuses || {};
+      containers.forEach(container => {
+        const key = container.dataset.findingKey;
+        if (key && statuses[key]) {
+          applyFeedbackState(container, statuses[key]);
+        }
+      });
+    } catch {
+      // Silent fallback; feedback still works when clicking buttons.
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadDocumentsFeedbackStatus);
+
+  let activeDownloadReportId = null;
+  function openDownloadModal(reportId) {
+    activeDownloadReportId = reportId;
+    document.getElementById('downloadModal').classList.remove('hidden');
+  }
+  function closeDownloadModal() {
+    document.getElementById('downloadModal').classList.add('hidden');
+    activeDownloadReportId = null;
+  }
+  function performDownload(format) {
+    if (!activeDownloadReportId) return showStyledAlert('No report selected', 'Notice');
+    const type = document.getElementById('downloadReportType').value;
+    const url = `/download-report/${activeDownloadReportId}?report_type=${encodeURIComponent(type)}&format=${encodeURIComponent(format)}`;
+    // Start download and close modal
+    window.location.href = url;
+    closeDownloadModal();
+  }
+</script>
+
+</body>
+</html>

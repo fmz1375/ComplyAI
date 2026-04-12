@@ -1,0 +1,1753 @@
+<!-- 
+  Collaboration Chat Widget
+  A floating chat component for real-time assessment collaboration
+  
+  Usage: Include this template and call initCollaborationChat(config) 
+-->
+
+<style>
+/* ============================================
+   COLLABORATION CHAT WIDGET STYLES
+   Enterprise SaaS Design - Clean & Professional
+   ============================================ */
+
+
+/* Chat Panel */
+#collab-chat-panel {
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  height: 520px;
+  max-height: calc(100vh - 140px);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 2px 10px rgba(0,0,0,0.1);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+  transform-origin: bottom right;
+  animation: slideIn 0.25s ease-out;
+}
+
+#collab-chat-panel.visible {
+  display: flex;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Chat Header */
+.collab-chat-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.collab-chat-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.collab-chat-header-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.collab-chat-header-subtitle {
+  font-size: 12px;
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.collab-online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34D399;
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.3);
+}
+
+.collab-chat-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.collab-header-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.collab-header-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.collab-header-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: white;
+}
+
+/* Participants Bar */
+.collab-participants-bar {
+  padding: 10px 16px;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.collab-participant-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.collab-participant-avatar:hover {
+  transform: scale(1.1);
+}
+
+.collab-participant-avatar.online {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.collab-participant-avatar.owner {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.collab-participant-avatar .online-indicator {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #34D399;
+  border: 2px solid white;
+}
+
+.collab-participants-count {
+  font-size: 12px;
+  color: #6B7280;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Messages Area */
+.collab-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+/* Message Styles */
+.collab-message {
+  display: flex;
+  gap: 10px;
+  max-width: 85%;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.collab-message.own {
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+
+.collab-message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  flex-shrink: 0;
+}
+
+.collab-message.own .collab-message-avatar {
+  background: #6D28D9;
+  color: white;
+}
+
+.collab-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.collab-message-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.collab-message-sender {
+  font-weight: 600;
+  color: #374151;
+}
+
+.collab-message.own .collab-message-sender {
+  color: #6D28D9;
+}
+
+.collab-message-role {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #F3F4F6;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.collab-message-role.owner {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.collab-message-time {
+  font-size: 11px;
+  color: #9CA3AF;
+}
+
+.collab-message-bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #F3F4F6;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.collab-message.own .collab-message-bubble {
+  background: #6D28D9;
+  color: white;
+}
+
+/* System Messages */
+.collab-message.system {
+  max-width: 100%;
+  justify-content: center;
+}
+
+.collab-message.system .collab-message-bubble {
+  background: transparent;
+  color: #9CA3AF;
+  font-size: 12px;
+  text-align: center;
+  padding: 8px 16px;
+}
+
+/* Notification Messages */
+.collab-message.notification .collab-message-bubble {
+  background: #DBEAFE;
+  color: #1E40AF;
+  border: 1px solid #93C5FD;
+}
+
+/* Typing Indicator */
+.collab-typing-indicator {
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #9CA3AF;
+  font-style: italic;
+  display: none;
+}
+
+.collab-typing-indicator.visible {
+  display: block;
+}
+
+/* Input Area */
+.collab-input-container {
+  padding: 12px 16px 16px;
+  background: white;
+  border-top: 1px solid #E5E7EB;
+  flex-shrink: 0;
+}
+
+.collab-input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.collab-input {
+  flex: 1;
+  min-height: 40px;
+  max-height: 100px;
+  padding: 10px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.collab-input:focus {
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+}
+
+.collab-send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #6D28D9;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.collab-send-btn:hover {
+  background: #5B21B6;
+}
+
+.collab-send-btn:active {
+  transform: scale(0.95);
+}
+
+.collab-send-btn:disabled {
+  background: #D1D5DB;
+  cursor: not-allowed;
+}
+
+.collab-send-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+
+/* Invite Modal */
+.collab-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: overlayFadeIn 0.2s ease-out;
+}
+
+.collab-modal-overlay.visible {
+  display: flex;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.collab-modal {
+  background: white;
+  border-radius: 16px;
+  width: 400px;
+  max-width: calc(100vw - 48px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  animation: modalSlideIn 0.25s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.collab-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.collab-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.collab-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #F3F4F6;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.collab-modal-close:hover {
+  background: #E5E7EB;
+}
+
+.collab-modal-body {
+  padding: 24px;
+}
+
+.collab-form-group {
+  margin-bottom: 20px;
+}
+
+.collab-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.collab-form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.collab-form-input:focus {
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+}
+
+.collab-form-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+  cursor: pointer;
+}
+
+.collab-modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.collab-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.collab-btn-secondary {
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+}
+
+.collab-btn-secondary:hover {
+  background: #E5E7EB;
+}
+
+.collab-btn-primary {
+  background: #6D28D9;
+  border: none;
+  color: white;
+}
+
+.collab-btn-primary:hover {
+  background: #5B21B6;
+}
+
+.collab-btn-primary:disabled {
+  background: #D1D5DB;
+  cursor: not-allowed;
+}
+
+/* Connection Status */
+.collab-connection-status {
+  padding: 8px 16px;
+  background: #FEF3C7;
+  color: #D97706;
+  font-size: 12px;
+  text-align: center;
+  display: none;
+}
+
+.collab-connection-status.visible {
+  display: block;
+}
+
+.collab-connection-status.connected {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.collab-connection-status.error {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  #collab-chat-panel {
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+  
+  .collab-modal {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+/* Empty State */
+.collab-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  color: #9CA3AF;
+}
+
+.collab-empty-state svg {
+  width: 64px;
+  height: 64px;
+  stroke: #D1D5DB;
+  margin-bottom: 16px;
+}
+
+.collab-empty-state h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #6B7280;
+  margin: 0 0 8px 0;
+}
+
+.collab-empty-state p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Attachment Button */
+.collab-attach-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #F3F4F6;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.collab-attach-btn:hover {
+  background: #E5E7EB;
+}
+
+.collab-attach-btn svg {
+  stroke: #6B7280;
+}
+
+/* Attachment Preview */
+.collab-attachment-preview {
+  padding: 8px 16px;
+  background: #F9FAFB;
+  border-top: 1px solid #E5E7EB;
+}
+
+.collab-attachment-preview-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+}
+
+.collab-attachment-preview img {
+  max-width: 60px;
+  max-height: 60px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.collab-attachment-preview #collab-attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.collab-attachment-remove {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FEE2E2;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collab-attachment-remove:hover {
+  background: #FECACA;
+}
+
+.collab-attachment-remove svg {
+  stroke: #DC2626;
+}
+
+/* Message Attachments */
+.collab-message-attachment {
+  margin-top: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.collab-message-attachment img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.collab-message-attachment img:hover {
+  transform: scale(1.02);
+}
+
+.collab-message-attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 8px;
+  font-size: 13px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.collab-message-attachment-file:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.collab-message.own .collab-message-attachment-file {
+  background: rgba(255,255,255,0.15);
+}
+
+.collab-message.own .collab-message-attachment-file:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* Deleted Message */
+.collab-message-deleted {
+  font-style: italic;
+  opacity: 0.6;
+}
+
+.collab-message-deleted .collab-message-bubble {
+  background: #F3F4F6 !important;
+  color: #9CA3AF !important;
+}
+
+/* Message Actions (delete button) */
+.collab-message-actions {
+  position: absolute;
+  top: 4px;
+  right: -30px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.collab-message.own .collab-message-actions {
+  right: auto;
+  left: -30px;
+}
+
+.collab-message:hover .collab-message-actions {
+  opacity: 1;
+}
+
+.collab-message-delete-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FEE2E2;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.collab-message-delete-btn:hover {
+  background: #FECACA;
+}
+
+.collab-message-delete-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: #DC2626;
+}
+
+/* Message wrapper for positioning delete button */
+.collab-message-wrapper {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
+
+.collab-message.own .collab-message-wrapper {
+  flex-direction: row-reverse;
+}
+
+/* Full timestamp */
+.collab-message-timestamp {
+  font-size: 10px;
+  color: #9CA3AF;
+  margin-top: 4px;
+}
+
+.collab-message.own .collab-message-timestamp {
+  text-align: right;
+}
+</style>
+
+<!-- Chat Panel -->
+<div id="collab-chat-panel">
+  <!-- Header -->
+  <div class="collab-chat-header">
+    <div class="collab-chat-header-info">
+      <div class="collab-chat-header-title">Assessment Collaboration</div>
+      <div class="collab-chat-header-subtitle">
+        <span class="collab-online-dot"></span>
+        <span id="collab-online-count">0 online</span>
+      </div>
+    </div>
+    <div class="collab-chat-header-actions">
+      <button class="collab-header-btn" onclick="confirmClearChat()" title="Clear chat history">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </button>
+      <button class="collab-header-btn" onclick="openInviteModal()" title="Invite collaborator">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+      </button>
+      <button class="collab-header-btn" onclick="toggleCollabChat()" title="Close chat">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Connection Status -->
+  <div id="collab-connection-status" class="collab-connection-status">
+    Connecting...
+  </div>
+  
+  <!-- Participants Bar -->
+  <div id="collab-participants-bar" class="collab-participants-bar">
+    <!-- Populated by JS -->
+  </div>
+  
+  <!-- Messages Container -->
+  <div id="collab-messages-container" class="collab-messages-container">
+    <div class="collab-empty-state" id="collab-empty-state">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+      </svg>
+      <h3>Start the conversation</h3>
+      <p>Invite team members to collaborate on this assessment</p>
+    </div>
+  </div>
+  
+  <!-- Typing Indicator -->
+  <div id="collab-typing-indicator" class="collab-typing-indicator"></div>
+  
+  <!-- Attachment Preview -->
+  <div id="collab-attachment-preview" class="collab-attachment-preview" style="display:none;">
+    <div class="collab-attachment-preview-content">
+      <img id="collab-attachment-img" src="" alt="Preview" style="display:none;">
+      <div id="collab-attachment-file" style="display:none;">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span id="collab-attachment-filename"></span>
+      </div>
+      <button onclick="clearAttachmentPreview()" class="collab-attachment-remove">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Input Area -->
+  <div class="collab-input-container">
+    <div class="collab-input-wrapper">
+      <input type="file" id="collab-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg,image/png,image/jpeg" onchange="handleFileSelect(event)">
+      <button class="collab-attach-btn" onclick="document.getElementById('collab-file-input').click()" title="Attach file">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+        </svg>
+      </button>
+      <textarea 
+        id="collab-message-input" 
+        class="collab-input" 
+        placeholder="Type a message..." 
+        rows="1"
+        onkeydown="handleChatKeydown(event)"
+        oninput="handleChatInput(event)"
+      ></textarea>
+      <button id="collab-send-btn" class="collab-send-btn" onclick="sendChatMessage()" disabled>
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Modal -->
+<div id="collab-invite-modal" class="collab-modal-overlay">
+  <div class="collab-modal">
+    <div class="collab-modal-header">
+      <h2 class="collab-modal-title">Invite Collaborator</h2>
+      <button class="collab-modal-close" onclick="closeInviteModal()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="collab-modal-body">
+      <div class="collab-form-group">
+        <label class="collab-form-label">Email Address</label>
+        <input type="email" id="collab-invite-email" class="collab-form-input" placeholder="colleague@company.com">
+      </div>
+      <div class="collab-form-group">
+        <label class="collab-form-label">Role</label>
+        <select id="collab-invite-role" class="collab-form-select">
+          <option value="viewer">Viewer - Can view and comment</option>
+          <option value="editor">Editor - Can view, comment, and edit</option>
+        </select>
+      </div>
+      <div class="collab-form-group">
+        <label class="collab-form-label">Personal Message (optional)</label>
+        <textarea id="collab-invite-message" class="collab-form-input" rows="3" placeholder="Add a personal note..."></textarea>
+      </div>
+    </div>
+    <div class="collab-modal-footer">
+      <button class="collab-btn collab-btn-secondary" onclick="closeInviteModal()">Cancel</button>
+      <button class="collab-btn collab-btn-primary" onclick="sendInvite()">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+// ============================================
+// COLLABORATION CHAT WIDGET - JavaScript
+// ============================================
+
+// Configuration
+let collabChatConfig = {
+  sessionId: null,
+  userId: null,
+  userName: 'User',
+  userEmail: '',
+  userRole: 'viewer',
+  apiBaseUrl: '',
+  socketUrl: null
+};
+
+// State
+let collabSocket = null;
+let collabChatOpen = false;
+let collabMessages = [];
+let collabParticipants = [];
+let collabTypingUsers = {};
+let collabTypingTimeout = null;
+let collabUnreadCount = 0;
+let collabIsConnected = false;
+
+/**
+ * Initialize the collaboration chat widget
+ * @param {Object} config - Configuration object
+ */
+function initCollaborationChat(config) {
+  // Prevent duplicate initialization
+  if (collabSocket && collabSocket.connected) {
+    console.log('CollabChat: Already initialized, skipping');
+    return;
+  }
+  
+  // Clean up any existing socket connection
+  if (collabSocket) {
+    collabSocket.removeAllListeners();
+    collabSocket.disconnect();
+    collabSocket = null;
+  }
+  
+  // Reset state
+  collabMessages = [];
+  collabParticipants = [];
+  collabTypingUsers = {};
+  collabUnreadCount = 0;
+  collabIsConnected = false;
+  
+  collabChatConfig = { ...collabChatConfig, ...config };
+  
+  if (!collabChatConfig.sessionId || !collabChatConfig.userId) {
+    console.error('CollabChat: sessionId and userId are required');
+    return;
+  }
+  
+  // Initialize WebSocket connection
+  initCollabSocket();
+  
+  // Setup event listeners
+  setupCollabEventListeners();
+  
+  console.log('CollabChat: Initialized for session', collabChatConfig.sessionId);
+}
+
+/**
+ * Initialize WebSocket connection
+ */
+function initCollabSocket() {
+  const socketUrl = collabChatConfig.socketUrl || window.location.origin;
+  
+  collabSocket = io(socketUrl, {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+  });
+  
+  // Connection events
+  collabSocket.on('connect', () => {
+    console.log('CollabChat: Connected');
+    updateConnectionStatus('connected', 'Connected');
+    joinCollabSession();
+  });
+  
+  collabSocket.on('disconnect', () => {
+    console.log('CollabChat: Disconnected');
+    updateConnectionStatus('error', 'Disconnected - Reconnecting...');
+    collabIsConnected = false;
+  });
+  
+  collabSocket.on('connect_error', (error) => {
+    console.error('CollabChat: Connection error', error);
+    updateConnectionStatus('error', 'Connection failed');
+  });
+  
+  // Session events
+  collabSocket.on('session_joined', (data) => {
+    console.log('CollabChat: Joined session', data);
+    collabIsConnected = true;
+    collabMessages = data.messages || [];
+    collabParticipants = data.participants || [];
+    collabUnreadCount = data.unread_count || 0;
+    
+    renderMessages();
+    renderParticipants();
+    updateUnreadBadge();
+    updateConnectionStatus('connected', 'Connected');
+  });
+  
+  collabSocket.on('error', (data) => {
+    console.error('CollabChat: Error', data.message);
+    showChatNotification(data.message, 'error');
+  });
+  
+  // Message events
+  collabSocket.on('new_message', (message) => {
+    collabMessages.push(message);
+    renderMessages();
+    
+    if (!collabChatOpen && message.sender_id !== collabChatConfig.userId) {
+      collabUnreadCount++;
+      updateUnreadBadge();
+    }
+    
+    if (collabChatOpen) {
+      scrollToBottom();
+      markMessagesRead();
+    }
+  });
+  
+  // Participant events
+  collabSocket.on('user_joined', (data) => {
+    const exists = collabParticipants.find(p => p.user_id === data.user_id);
+    if (!exists) {
+      collabParticipants.push({
+        user_id: data.user_id,
+        user_name: data.user_name,
+        role: data.role,
+        is_online: true
+      });
+    } else {
+      exists.is_online = true;
+    }
+    renderParticipants();
+  });
+  
+  collabSocket.on('user_left', (data) => {
+    const participant = collabParticipants.find(p => p.user_id === data.user_id);
+    if (participant) {
+      participant.is_online = false;
+    }
+    renderParticipants();
+  });
+  
+  // Typing events
+  collabSocket.on('user_typing', (data) => {
+    if (data.is_typing) {
+      collabTypingUsers[data.user_id] = data.user_name;
+    } else {
+      delete collabTypingUsers[data.user_id];
+    }
+    updateTypingIndicator();
+  });
+  
+  // Report events
+  collabSocket.on('report_update_notification', (data) => {
+    showChatNotification(`Report updated: ${data.change_summary}`, 'info');
+  });
+  
+  collabSocket.on('report_regeneration', (data) => {
+    if (data.status === 'started') {
+      showChatNotification('Report regeneration started...', 'info');
+    } else if (data.status === 'completed') {
+      showChatNotification('Report has been regenerated', 'success');
+    } else if (data.status === 'error') {
+      showChatNotification('Report regeneration failed', 'error');
+    }
+  });
+  
+  // Online users
+  collabSocket.on('online_users', (data) => {
+    data.users.forEach(user => {
+      const participant = collabParticipants.find(p => p.user_id === user.user_id);
+      if (participant) {
+        participant.is_online = true;
+      }
+    });
+    renderParticipants();
+  });
+  
+  // Message deleted
+  collabSocket.on('message_deleted', (data) => {
+    const msg = collabMessages.find(m => m.id === data.message_id);
+    if (msg) {
+      msg.is_deleted = 1;
+      msg.content = '';
+    }
+    renderMessages();
+  });
+  
+  // Chat cleared
+  collabSocket.on('chat_cleared', (data) => {
+    collabMessages = [];
+    renderMessages();
+    showChatNotification('Chat history has been cleared', 'info');
+  });
+}
+
+/**
+ * Join the collaboration session
+ */
+function joinCollabSession() {
+  collabSocket.emit('join_session', {
+    session_id: collabChatConfig.sessionId,
+    user_id: collabChatConfig.userId,
+    user_name: collabChatConfig.userName,
+    user_email: collabChatConfig.userEmail,
+    role: collabChatConfig.userRole
+  });
+}
+
+/**
+ * Toggle chat panel visibility
+ */
+function toggleCollabChat() {
+  collabChatOpen = !collabChatOpen;
+  const panel = document.getElementById('collab-chat-panel');
+  
+  if (collabChatOpen) {
+    panel.classList.add('visible');
+    scrollToBottom();
+    markMessagesRead();
+  } else {
+    panel.classList.remove('visible');
+  }
+}
+
+// Attachment state
+let pendingAttachment = null;
+
+/**
+ * Handle file selection for attachments
+ */
+async function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Check file size (100MB max)
+  if (file.size > 100 * 1024 * 1024) {
+    showChatNotification('File too large (max 100MB)', 'error');
+    return;
+  }
+  
+  const preview = document.getElementById('collab-attachment-preview');
+  const imgEl = document.getElementById('collab-attachment-img');
+  const fileEl = document.getElementById('collab-attachment-file');
+  const nameEl = document.getElementById('collab-attachment-filename');
+  
+  // Check if image
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imgEl.src = e.target.result;
+      imgEl.style.display = 'block';
+      fileEl.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    imgEl.style.display = 'none';
+    fileEl.style.display = 'flex';
+    nameEl.textContent = file.name;
+  }
+  
+  preview.style.display = 'block';
+  pendingAttachment = file;
+  
+  // Enable send button
+  document.getElementById('collab-send-btn').disabled = false;
+  
+  // Clear file input
+  event.target.value = '';
+}
+
+/**
+ * Clear attachment preview
+ */
+function clearAttachmentPreview() {
+  pendingAttachment = null;
+  const preview = document.getElementById('collab-attachment-preview');
+  preview.style.display = 'none';
+  document.getElementById('collab-attachment-img').src = '';
+  document.getElementById('collab-attachment-filename').textContent = '';
+  
+  // Update send button state
+  const input = document.getElementById('collab-message-input');
+  document.getElementById('collab-send-btn').disabled = !input.value.trim();
+}
+
+/**
+ * Send a chat message
+ */
+async function sendChatMessage() {
+  const input = document.getElementById('collab-message-input');
+  const content = input.value.trim();
+  
+  if (!content && !pendingAttachment) return;
+  if (!collabIsConnected) return;
+  
+  let attachmentData = {};
+  
+  // Upload attachment if present
+  if (pendingAttachment) {
+    const formData = new FormData();
+    formData.append('file', pendingAttachment);
+    
+    try {
+      const response = await fetch('/api/chat/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        attachmentData = {
+          attachment_url: result.url,
+          attachment_type: result.type,
+          attachment_name: result.name
+        };
+      } else {
+        showChatNotification(result.error || 'Failed to upload file', 'error');
+        return;
+      }
+    } catch (err) {
+      showChatNotification('Failed to upload file', 'error');
+      return;
+    }
+    
+    clearAttachmentPreview();
+  }
+  
+  collabSocket.emit('send_message', {
+    session_id: collabChatConfig.sessionId,
+    user_id: collabChatConfig.userId,
+    user_name: collabChatConfig.userName,
+    role: collabChatConfig.userRole,
+    content: content,
+    ...attachmentData
+  });
+  
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('collab-send-btn').disabled = true;
+  
+  // Stop typing indicator
+  collabSocket.emit('typing', {
+    session_id: collabChatConfig.sessionId,
+    user_id: collabChatConfig.userId,
+    user_name: collabChatConfig.userName,
+    is_typing: false
+  });
+}
+
+/**
+ * Handle keyboard input in message textarea
+ */
+function handleChatKeydown(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendChatMessage();
+  }
+}
+
+/**
+ * Handle input changes in message textarea
+ */
+function handleChatInput(event) {
+  const input = event.target;
+  const sendBtn = document.getElementById('collab-send-btn');
+  
+  // Enable/disable send button (allow if there's text OR a pending attachment)
+  sendBtn.disabled = (!input.value.trim() && !pendingAttachment) || !collabIsConnected;
+  
+  // Auto-resize textarea
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+  
+  // Send typing indicator
+  if (collabTypingTimeout) {
+    clearTimeout(collabTypingTimeout);
+  }
+  
+  collabSocket.emit('typing', {
+    session_id: collabChatConfig.sessionId,
+    user_id: collabChatConfig.userId,
+    user_name: collabChatConfig.userName,
+    is_typing: true
+  });
+  
+  collabTypingTimeout = setTimeout(() => {
+    collabSocket.emit('typing', {
+      session_id: collabChatConfig.sessionId,
+      user_id: collabChatConfig.userId,
+      user_name: collabChatConfig.userName,
+      is_typing: false
+    });
+  }, 2000);
+}
+
+/**
+ * Render messages in the chat
+ */
+function renderMessages() {
+  const container = document.getElementById('collab-messages-container');
+  const emptyState = document.getElementById('collab-empty-state');
+  
+  if (collabMessages.length === 0) {
+    emptyState.style.display = 'flex';
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  
+  container.innerHTML = collabMessages.map(msg => {
+    const isOwn = msg.sender_id === collabChatConfig.userId;
+    const isSystem = msg.message_type === 'system';
+    const isNotification = msg.message_type === 'notification';
+    const isDeleted = msg.is_deleted === 1;
+    
+    if (isSystem) {
+      return `
+        <div class="collab-message system">
+          <div class="collab-message-bubble">${escapeHtml(msg.content)}</div>
+        </div>
+      `;
+    }
+    
+    const initials = getInitials(msg.sender_name);
+    const time = formatTime(msg.created_at);
+    const fullTimestamp = formatFullTimestamp(msg.created_at);
+    const roleClass = msg.sender_role === 'owner' ? 'owner' : '';
+    const msgClass = isOwn ? 'own' : (isNotification ? 'notification' : '');
+    const deletedClass = isDeleted ? 'collab-message-deleted' : '';
+    
+    // Build attachment HTML
+    let attachmentHtml = '';
+    if (!isDeleted && msg.attachment_url) {
+      if (msg.attachment_type === 'image') {
+        attachmentHtml = `
+          <div class="collab-message-attachment">
+            <img src="${escapeHtml(msg.attachment_url)}" alt="${escapeHtml(msg.attachment_name || 'Image')}" onclick="window.open('${escapeHtml(msg.attachment_url)}', '_blank')">
+          </div>
+        `;
+      } else {
+        attachmentHtml = `
+          <div class="collab-message-attachment">
+            <a href="${escapeHtml(msg.attachment_url)}" target="_blank" class="collab-message-attachment-file">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              ${escapeHtml(msg.attachment_name || 'File')}
+            </a>
+          </div>
+        `;
+      }
+    }
+    
+    // Delete button (only for own non-deleted messages)
+    const deleteBtn = (isOwn && !isDeleted) ? `
+      <div class="collab-message-actions">
+        <button class="collab-message-delete-btn" onclick="deleteMessage(${msg.id})" title="Delete message">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </button>
+      </div>
+    ` : '';
+    
+    // Message content
+    const bubbleContent = isDeleted 
+      ? '<em>This message was deleted</em>' 
+      : escapeHtml(msg.content);
+    
+    return `
+      <div class="collab-message ${msgClass} ${deletedClass}">
+        <div class="collab-message-wrapper">
+          <div class="collab-message-avatar">${initials}</div>
+          <div class="collab-message-content">
+            <div class="collab-message-header">
+              <span class="collab-message-sender">${escapeHtml(msg.sender_name)}</span>
+              <span class="collab-message-role ${roleClass}">${msg.sender_role}</span>
+            </div>
+            <div class="collab-message-bubble">${bubbleContent}</div>
+            ${attachmentHtml}
+            <div class="collab-message-timestamp" title="${fullTimestamp}">${time}</div>
+          </div>
+          ${deleteBtn}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * Delete a message
+ */
+function deleteMessage(messageId) {
+  if (!confirm('Delete this message?')) return;
+  
+  collabSocket.emit('delete_message', {
+    session_id: collabChatConfig.sessionId,
+    message_id: messageId,
+    user_id: collabChatConfig.userId
+  });
+}
+
+/**
+ * Confirm and clear entire chat
+ */
+function confirmClearChat() {
+  if (collabChatConfig.userRole !== 'owner') {
+    showChatNotification('Only the owner can clear chat history', 'error');
+    return;
+  }
+  
+  if (!confirm('Are you sure you want to clear all chat history? This cannot be undone.')) return;
+  
+  collabSocket.emit('clear_chat', {
+    session_id: collabChatConfig.sessionId,
+    user_id: collabChatConfig.userId
+  });
+}
+
+/**
+ * Format full timestamp
+ */
+function formatFullTimestamp(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+/**
+ * Render participants bar
+ */
+function renderParticipants() {
+  const container = document.getElementById('collab-participants-bar');
+  const onlineCount = collabParticipants.filter(p => p.is_online).length;
+  
+  document.getElementById('collab-online-count').textContent = `${onlineCount} online`;
+  
+  container.innerHTML = collabParticipants.map(p => {
+    const initials = getInitials(p.user_name);
+    const onlineClass = p.is_online ? 'online' : '';
+    const ownerClass = p.role === 'owner' ? 'owner' : '';
+    const onlineIndicator = p.is_online ? '<span class="online-indicator"></span>' : '';
+    
+    return `
+      <div class="collab-participant-avatar ${onlineClass} ${ownerClass}" title="${escapeHtml(p.user_name)} (${p.role})">
+        ${initials}
+        ${onlineIndicator}
+      </div>
+    `;
+  }).join('') + `<span class="collab-participants-count">${collabParticipants.length} participants</span>`;
+}
+
+/**
+ * Update typing indicator
+ */
+function updateTypingIndicator() {
+  const indicator = document.getElementById('collab-typing-indicator');
+  const names = Object.values(collabTypingUsers);
+  
+  if (names.length === 0) {
+    indicator.classList.remove('visible');
+    indicator.textContent = '';
+  } else if (names.length === 1) {
+    indicator.classList.add('visible');
+    indicator.textContent = `${names[0]} is typing...`;
+  } else {
+    indicator.classList.add('visible');
+    indicator.textContent = `${names.length} people are typing...`;
+  }
+}
+
+/**
+ * Update unread badge
+ */
+function updateUnreadBadge() {
+  const badge = document.getElementById('collab-chat-badge');
+  if (!badge) return;
+
+  if (collabUnreadCount > 0) {
+    badge.textContent = collabUnreadCount > 99 ? '99+' : collabUnreadCount;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+/**
+ * Mark messages as read
+ */
+function markMessagesRead() {
+  if (collabUnreadCount > 0) {
+    collabUnreadCount = 0;
+    updateUnreadBadge();
+    
+    collabSocket.emit('mark_read', {
+      session_id: collabChatConfig.sessionId,
+      user_id: collabChatConfig.userId
+    });
+  }
+}
+
+/**
+ * Scroll to bottom of messages
+ */
+function scrollToBottom() {
+  const container = document.getElementById('collab-messages-container');
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 50);
+}
+
+/**
+ * Update connection status display
+ */
+function updateConnectionStatus(status, message) {
+  const statusEl = document.getElementById('collab-connection-status');
+  statusEl.textContent = message;
+  statusEl.className = `collab-connection-status ${status}`;
+  
+  if (status === 'connected') {
+    setTimeout(() => {
+      statusEl.classList.remove('visible');
+    }, 2000);
+  } else {
+    statusEl.classList.add('visible');
+  }
+}
+
+/**
+ * Open invite modal
+ */
+function openInviteModal() {
+  if (collabChatConfig.userRole !== 'owner') {
+    showChatNotification('Only the owner can invite collaborators', 'error');
+    return;
+  }
+  document.getElementById('collab-invite-modal').classList.add('visible');
+}
+
+/**
+ * Close invite modal
+ */
+function closeInviteModal() {
+  document.getElementById('collab-invite-modal').classList.remove('visible');
+  document.getElementById('collab-invite-email').value = '';
+  document.getElementById('collab-invite-message').value = '';
+}
+
+/**
+ * Send invitation
+ */
+async function sendInvite() {
+  const email = document.getElementById('collab-invite-email').value.trim();
+  const role = document.getElementById('collab-invite-role').value;
+  const message = document.getElementById('collab-invite-message').value.trim();
+  
+  if (!email) {
+    showChatNotification('Please enter an email address', 'error');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${collabChatConfig.apiBaseUrl}/api/collab/invite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: collabChatConfig.sessionId,
+        inviter_id: collabChatConfig.userId,
+        inviter_name: collabChatConfig.userName,
+        invitee_email: email,
+        role: role,
+        message: message
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      showChatNotification(`Invitation sent to ${email}`, 'success');
+      closeInviteModal();
+    } else {
+      showChatNotification(data.error || 'Failed to send invite', 'error');
+    }
+  } catch (error) {
+    console.error('Failed to send invite:', error);
+    showChatNotification('Failed to send invitation', 'error');
+  }
+}
+
+/**
+ * Show notification toast
+ */
+function showChatNotification(message, type = 'info') {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10001;
+    animation: slideIn 0.25s ease-out;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  `;
+  
+  const colors = {
+    info: { bg: '#DBEAFE', color: '#1E40AF' },
+    success: { bg: '#D1FAE5', color: '#059669' },
+    error: { bg: '#FEE2E2', color: '#DC2626' }
+  };
+  
+  const { bg, color } = colors[type] || colors.info;
+  toast.style.background = bg;
+  toast.style.color = color;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    toast.style.transition = 'all 0.2s ease-out';
+    setTimeout(() => toast.remove(), 200);
+  }, 3000);
+}
+
+/**
+ * Setup event listeners
+ */
+function setupCollabEventListeners() {
+  // Close modal on outside click
+  document.getElementById('collab-invite-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'collab-invite-modal') {
+      closeInviteModal();
+    }
+  });
+  
+  // ESC key handler
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('collab-invite-modal').classList.contains('visible')) {
+        closeInviteModal();
+      } else if (collabChatOpen) {
+        toggleCollabChat();
+      }
+    }
+  });
+}
+
+// Utility functions
+function getInitials(name) {
+  return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatTime(isoString) {
+  const date = new Date(isoString);
+  const now = new Date();
+  const diff = now - date;
+  
+  if (diff < 60000) return 'now';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
+  if (diff < 86400000) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+// Global function to trigger report update notification
+function notifyReportUpdate(changeType, changeSummary) {
+  if (collabSocket && collabIsConnected) {
+    collabSocket.emit('report_updated', {
+      session_id: collabChatConfig.sessionId,
+      user_id: collabChatConfig.userId,
+      change_type: changeType,
+      change_summary: changeSummary
+    });
+  }
+}
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { initCollaborationChat, notifyReportUpdate };
+}
+</script>

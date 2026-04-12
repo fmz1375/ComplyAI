@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ComplyAI</title>
+    <style>
+        :root { --primary: #5b2cff; --accent: #8b5cf6; --bg: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; margin:0; display:flex; height:100vh; overflow:hidden; }
+        #main { flex:3; display:flex; flex-direction:column; padding:20px; border-right:1px solid #eee; background: var(--bg); overflow-y:auto;}
+        #pdfMode { display:flex; flex-direction:column; flex:1; min-height:0;}
+        #doc-view { flex:1; border:2px dashed #ccc; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#fafafa; overflow:hidden; }
+        #sidebar { flex:1.2; background:white; display:flex; flex-direction:column; box-shadow:-2px 0 10px rgba(91,44,255,0.15); }
+        .sidebar-tabs { display:flex; gap:6px; padding:10px; background:#f3f4f6; border-bottom:1px solid #e5e7eb; }
+        .sidebar-tab { flex:1; padding:8px 10px; border:1px solid #e5e7eb; border-radius:6px; background:white; cursor:pointer; font-weight:600; font-size:0.9em; }
+        .sidebar-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+        .sidebar-panel { flex:1; overflow-y:auto; padding:12px; display:none; }
+        .sidebar-panel.active { display:block; }
+        .sidebar-header { padding:10px 0; color:#111827; font-weight:700; }
+        .sidebar-content { display:flex; flex-direction:column; gap:10px; }
+
+        /* Policy Chat (Sidebar) */
+        .policy-chat-wrap { display:flex; flex-direction:column; gap:10px; height:100%; }
+        .policy-chat-upload { display:flex; gap:8px; align-items:center; }
+        .policy-chat-status { font-size:0.85em; color:#6b7280; min-height:16px; }
+        .policy-chat-messages { flex:1; border:1px solid #e5e7eb; border-radius:8px; padding:10px; background:#f9fafb; overflow-y:auto; min-height:220px; }
+        .policy-chat-input-row { display:flex; gap:8px; }
+        #policy-chat-input { flex:1; border:1px solid #d1d5db; border-radius:20px; padding:8px 12px; outline:none; font-size:14px; }
+        #policy-chat-input:focus { border-color:var(--primary); }
+        #policy-chat-send { background:var(--primary); color:white; border:none; border-radius:20px; padding:8px 12px; cursor:pointer; }
+        #policy-chat-send:disabled { opacity:0.6; cursor:not-allowed; }
+        .risk-card { background:#f8f5ff; border-left:5px solid var(--accent); padding:12px; margin-bottom:15px; border-radius:8px; font-size:0.9em; box-shadow:0 2px 8px rgba(91,44,255,0.08);}
+        .risk-card.critical { border-left-color:#dc2626; background:#fee2e2; }
+        .risk-card.high { border-left-color:#ea580c; background:#ffedd5; }
+        .risk-card.moderate { border-left-color:#f59e0b; background:#fef3c7; }
+        .risk-card.low { border-left-color:#10b981; background:#ecfdf5; }
+        .risk-card strong { color:#4b1fd3; }
+        .risk-level-badge { display:inline-block; padding:4px 8px; border-radius:4px; font-weight:600; font-size:0.8em; margin-bottom:8px; }
+        .risk-level-badge.critical { background:#dc2626; color:white; }
+        .risk-level-badge.high { background:#ea580c; color:white; }
+        .risk-level-badge.moderate { background:#f59e0b; color:white; }
+        .risk-level-badge.low { background:#10b981; color:white; }
+        .affected-pages { color:#666; font-size:0.85em; margin:8px 0; }
+        .original-snippet { font-style:italic; color:#666; background:#eee; padding:5px; display:block; margin-bottom:10px; }
+        .loading { font-style:italic; color:var(--accent);}
+        .btn { background:var(--accent); color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600; }
+        .btn-secondary { background:#4b1fd3; }
+        .btn:disabled { opacity:0.5; cursor:not-allowed; }
+        
+        /* Function Selection */
+        .function-checkbox { display:flex; align-items:center; padding:12px; background:white; border:2px solid #e5e7eb; border-radius:8px; cursor:pointer; transition:all 0.3s; }
+        .function-checkbox:hover { border-color:var(--primary); background:#f5f3ff; }
+        .function-checkbox.selected { background:var(--primary); color:white; border-color:var(--primary); }
+        .function-checkbox input[type="checkbox"] { margin-right:8px; width:18px; height:18px; cursor:pointer; }
+        
+        /* Question Card */
+        .question-card { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:16px; }
+        .question-card label { display:block; font-weight:600; margin-bottom:8px; color:#1f2937; }
+        .question-card input, .question-card textarea, .question-card select { 
+            width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px; 
+            font-size:14px; font-family:inherit; box-sizing:border-box;
+        }
+        .question-card input:focus, .question-card textarea:focus, .question-card select:focus {
+            outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(91,44,255,0.1);
+        }
+        .question-card textarea { resize:vertical; min-height:80px; }
+        .question-card .question-id { font-size:0.85em; color:#6b7280; margin-bottom:4px; }
+        
+        /* MCQ Options Container */
+        .mcq-options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        /* MCQ Option */
+        .mcq-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-weight: normal;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .mcq-option input[type="radio"],
+        .mcq-option input[type="checkbox"] {
+            width: auto !important;
+            min-width: 18px !important;
+            height: 18px !important;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            margin: 2px 0 0 0 !important;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        
+        .mcq-option-text {
+            display: block;
+            flex: 1;
+            padding: 4px 0;
+            text-align: left;
+            word-break: break-word;
+        }
+        
+        /* Report Display */
+        .report-section { margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid #e5e7eb; }
+        .report-section h3 { color:var(--primary); margin:0 0 8px 0; }
+        .report-item { padding:12px; background:white; border-left:4px solid var(--accent); margin-bottom:12px; }
+
+        #main.report-mode {
+            flex: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 40px;
+        }
+
+        /* Report blocks */
+        .report-block {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(91,44,255,0.07);
+            overflow: hidden;
+            width: 100%;
+        }
+        .report-block-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 16px 22px;
+            font-weight: 700;
+            font-size: 1.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .report-block-body {
+            padding: 22px;
+            font-size: 0.95em;
+            line-height: 1.7;
+            min-height: 60px;
+            outline: none;
+        }
+        .report-block-body[contenteditable="true"] {
+            background: #fefce8;
+            border: 2px dashed #f59e0b;
+            border-radius: 0 0 10px 10px;
+        }
+        .edit-toggle-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .edit-toggle-btn:hover { background: rgba(255,255,255,0.35); }
+
+        /* Gap cards inside report */
+        .rpt-gap-card {
+            background: #f8f5ff;
+            border-left: 5px solid var(--accent);
+            padding: 14px;
+            margin-bottom: 14px;
+            border-radius: 8px;
+        }
+        .rpt-gap-card.critical { border-left-color: #dc2626; background: #fee2e2; }
+        .rpt-gap-card.high { border-left-color: #ea580c; background: #ffedd5; }
+        .rpt-gap-card.medium { border-left-color: #f59e0b; background: #fef3c7; }
+        .rpt-gap-card.low { border-left-color: #22c55e; background: #ecfdf5; }
+        .rpt-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.8em;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+        .rpt-badge.critical { background: #dc2626; }
+        .rpt-badge.high { background: #ea580c; }
+        .rpt-badge.medium { background: #f59e0b; }
+        .rpt-badge.low { background: #22c55e; }
+
+        /* Heatmap grid */
+        .heatmap-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .heatmap-item {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 100px;
+            gap: 8px;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+        }
+        .heatmap-item.low { background: #22c55e; }
+        .heatmap-item.medium { background: #f59e0b; }
+        .heatmap-item.high { background: #ea580c; }
+        .heatmap-item-label { font-size: 0.85em; text-align: center; opacity: 0.9; }
+
+        /* Risk table */
+        .risk-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        .risk-table th {
+            background: var(--primary);
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .risk-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        .risk-table tr:nth-child(even) td { background: #f9fafb; }
+        .risk-level-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.82em;
+            font-weight: 700;
+            color: white;
+        }
+        .risk-level-pill.critical { background: #dc2626; }
+        .risk-level-pill.high { background: #ea580c; }
+        .risk-level-pill.medium { background: #f59e0b; }
+        .risk-level-pill.low { background: #22c55e; }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            #sidebar, #chatbot-toggle, #chatbot-window, #flowIndicator { 
+                display: none !important; 
+            }
+            
+            #main { 
+                padding: 40px !important; 
+                max-width: 100% !important;
+                margin: 0 !important;
+                flex: none !important;
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+                border-right: none !important;
+            }
+            
+            #main.report-mode {
+                flex: none !important;
+                max-width: 210mm !important;
+                margin: 0 auto !important;
+                padding: 40px !important;
+            }
+            
+            /* Allow all content to expand across multiple pages */
+            .report-block { 
+                break-inside: auto !important;
+                page-break-inside: auto !important;
+                box-shadow: none !important; 
+                border: 1px solid #999 !important;
+                margin-bottom: 20px !important;
+                page-break-after: auto !important;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            .report-block h2,
+            .report-block h3,
+            .report-block h4 {
+                page-break-after: avoid;
+            }
+            
+            .report-block-body {
+                break-inside: auto !important;
+                page-break-inside: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+            }
+            
+            /* Ensure gap cards print properly */
+            .rpt-gap-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 12px !important;
+            }
+            
+            /* Heatmap items should break properly */
+            .heatmap-grid {
+                display: grid !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            
+            .heatmap-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            /* Tables print clearly */
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            
+            thead {
+                display: table-header-group;
+                page-break-after: avoid;
+            }
+            
+            tbody {
+                page-break-inside: avoid;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+            }
+            
+            td, th {
+                border: 1px solid #999 !important;
+                padding: 8px !important;
+            }
+            
+            /* Hide edit buttons in print */
+            .edit-toggle-btn { 
+                display: none !important; 
+            }
+            
+            button[onclick*="toggleEdit"],
+            button[onclick*="saveAllEdits"] {
+                display: none !important;
+            }
+            
+            /* Ensure images print */
+            img {
+                max-width: 100% !important;
+                height: auto !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 12px !important;
+            }
+            
+            /* Print-friendly colors */
+            .risk-level-badge,
+            .rpt-badge {
+                border: 1px solid #333 !important;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            p {
+                orphans: 3;
+                widows: 3;
+            }
+            
+            /* Page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+        }
+        
+        /* Chatbot Styles */
+        #chatbot-toggle { position:fixed; bottom:20px; right:20px; width:60px; height:60px; background:var(--primary); border-radius:50%; border:none; color:white; font-size:24px; cursor:pointer; box-shadow:0 4px 12px rgba(91,44,255,0.3); z-index:1000; transition:all 0.3s ease; }
+        #chatbot-toggle:hover { background:var(--accent); transform:scale(1.1); }
+        #chatbot-window { position:fixed; bottom:90px; right:20px; width:380px; height:500px; background:white; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.15); display:none; flex-direction:column; z-index:999; border:1px solid #e5e7eb; }
+        #chatbot-header { background:var(--primary); color:white; padding:15px; border-radius:12px 12px 0 0; display:flex; justify-content:space-between; align-items:center; cursor:move; user-select:none; }
+        #chatbot-messages { flex:1; overflow-y:auto; padding:15px; background:#f9fafb; }
+        .message { margin-bottom:12px; display:flex; flex-direction:column; }
+        .message.user { align-items:flex-end; }
+        .message.assistant { align-items:flex-start; }
+        .message-bubble { max-width:80%; padding:10px 14px; border-radius:18px; word-wrap:break-word; }
+        .message.user .message-bubble { background:var(--primary); color:white; border-bottom-right-radius:4px; }
+        .message.assistant .message-bubble { background:#e5e7eb; color:#1f2937; border-bottom-left-radius:4px; }
+        .message-time { font-size:0.7em; color:#6b7280; margin-top:4px; }
+        #chatbot-input-container { padding:15px; border-top:1px solid #e5e7eb; display:flex; gap:8px; }
+        #chatbot-input { flex:1; border:1px solid #d1d5db; border-radius:20px; padding:8px 16px; outline:none; font-size:14px; }
+        #chatbot-input:focus { border-color:var(--primary); }
+        #chatbot-send { background:var(--primary); color:white; border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        #chatbot-send:hover { background:var(--accent); }
+        .typing-indicator { display:none; padding:10px 14px; background:#e5e7eb; border-radius:18px; border-bottom-left-radius:4px; color:#6b7280; font-style:italic; }
+        .finding-context { background:#fff3cd; border:1px solid #ffeaa7; border-radius:8px; padding:8px 12px; margin-bottom:8px; font-size:0.85em; color:#856404; }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h1 style="margin:0;">ComplyAI - Sequential Compliance Assessment</h1>
+            <a href="/dashboard" class="btn" style="background:#6366f1; text-decoration:none; display:flex; align-items:center; gap:6px;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Dashboard
+            </a>
+        </div>
+        <div style="margin:8px 0 16px; display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-secondary" onclick="setSidebarTab('chatbot')">Open Policy Chatbot</button>
+        </div>
+        
+        <!-- Sequential Flow Indicator -->
+        <div id="flowIndicator" style="margin-bottom:20px; display:flex; gap:8px; align-items:center; padding:15px; background:#f0f9ff; border-radius:8px; border-left:4px solid var(--primary); flex-wrap:wrap;">
+            <div id="stepIndicator1" style="padding:6px 12px; background:var(--primary); color:white; border-radius:6px; font-weight:600; font-size:0.85em;">Step 1: PDF</div>
+            <div style="color:#ccc;">→</div>
+            <div id="stepIndicator2" style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; border-radius:6px; font-weight:600; font-size:0.85em;">Step 2: Org Info</div>
+            <div style="color:#ccc;">→</div>
+            <div id="stepIndicator3" style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; border-radius:6px; font-weight:600; font-size:0.85em;">Step 3: Risk Appetite</div>
+            <div style="color:#ccc;">→</div>
+            <div id="stepIndicator4" style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; border-radius:6px; font-weight:600; font-size:0.85em;">Step 4: Questionnaire</div>
+            <div style="color:#ccc;">→</div>
+            <div id="stepIndicator5" style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; border-radius:6px; font-weight:600; font-size:0.85em;">Step 5: Heat Map</div>
+            <div style="color:#ccc;">→</div>
+            <div id="stepIndicator6" style="padding:6px 12px; background:#e5e7eb; color:#9ca3af; border-radius:6px; font-weight:600; font-size:0.85em;">Step 6: Report</div>
+        </div>
+        
+        <!-- PDF Analysis Mode -->
+        <div id="pdfMode">
+            <div style="margin-bottom:12px;">
+                <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
+                <button class="btn" onclick="triggerUpload()">Upload PDF</button>
+                <button id="analyzeBtn" class="btn btn-secondary" style="display:none;">Analyze</button>
+            </div>
+            <div id="uploadStatus" style="color:#6b21a8; font-size:0.9em; min-height:18px;"></div>
+            <div id="progressWrap" style="margin-top:6px; display:none;">
+                <div style="height:8px; background:#eee; border-radius:999px; overflow:hidden;">
+                    <div id="progressBar" style="height:8px; width:0%; background:var(--accent);"></div>
+                </div>
+                <div id="progressText" style="font-size:0.85em; color:#6b21a8; margin-top:4px;"></div>
+            </div>
+            <div id="doc-view">
+                <p id="placeholder">Upload a policy document to begin...</p>
+                <iframe id="pdfFrame" style="width:100%; height:100%; display:none; border:none; background:white; border-radius:6px;"></iframe>
+            </div>
+        </div>
+        
+        <!-- Questionnaire Mode -->
+        <div id="questionnaireMode" style="display:none; flex-direction:column; flex:1; overflow-y:auto;">
+            <div id="questionnaireContainer">
+                <!-- Step 1: Select NIST Functions -->
+                <div id="step1" style="display:block;">
+                    <h2>Step 1: Select NIST CSF Functions</h2>
+                    <p style="color:#666;">Choose the NIST Cybersecurity Framework functions to evaluate:</p>
+                    <div id="nistFunctionsContainer" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:20px;">
+                        <!-- Functions will be loaded here -->
+                    </div>
+                    <button class="btn" onclick="proceedToOrgInfo()">Next: Organization Info</button>
+                </div>
+                
+                <!-- Step 2: Organization Info -->
+                <div id="step2" style="display:none;">
+                    <h2>Step 2: Organization Information</h2>
+                    <form id="orgInfoForm" style="display:grid; gap:12px; max-width:500px;">
+                        <label>
+                            Organization Name *
+                            <input type="text" id="org_name" name="organization_name" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                        </label>
+                        <label>
+                            Industry *
+                            <input type="text" id="org_industry" name="industry" placeholder="e.g., Healthcare, Finance, Manufacturing" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                        </label>
+                        <label>
+                            Organization Size *
+                            <select id="org_size" name="size" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                                <option value="">Select Size</option>
+                                <option value="small">Small (1-50)</option>
+                                <option value="medium">Medium (51-500)</option>
+                                <option value="large">Large (500+)</option>
+                            </select>
+                        </label>
+                        <label>
+                            Contact Person *
+                            <input type="text" id="org_contact" name="contact_person" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                        </label>
+                        <label>
+                            Contact Email *
+                            <input type="email" id="org_email" name="contact_email" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                        </label>
+                        <label>
+                            Scope of Assessment
+                            <textarea id="org_scope" name="scope" placeholder="e.g., On-premise infrastructure, cloud services, all systems..." style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px; min-height:80px;"></textarea>
+                        </label>
+                    </form>
+                    <div style="margin-top:20px; display:flex; gap:8px;">
+                        <button class="btn btn-secondary" onclick="goBackToStep1()">Back</button>
+                        <button class="btn" onclick="proceedToRiskAppetite()">Next: Risk Appetite</button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Risk Appetite Questions -->
+                <div id="step3_risk" style="display:none;">
+                    <h2>Step 3: Risk Appetite Assessment</h2>
+                    <p style="color:#666; margin-bottom:20px;">Define your organization's approach to cybersecurity risk. This applies to all selected NIST functions.</p>
+                    <form id="riskAppetiteForm" style="display:grid; gap:20px;">
+                        <!-- Risk appetite questions will be loaded here -->
+                    </form>
+                    <div style="margin-top:20px; display:flex; gap:8px;">
+                        <button class="btn btn-secondary" onclick="goBackToOrgInfo()">Back</button>
+                        <button class="btn" onclick="proceedToQuestionnaire()">Next: Questionnaire</button>
+                    </div>
+                </div>
+                
+                <!-- Step 4: NIST Questionnaire -->
+                <div id="step4" style="display:none;">
+                    <h2>Step 4: Answer NIST Compliance Questionnaire</h2>
+                    <p style="color:#666; margin-bottom:20px;" id="questProgressText">Loading questions...</p>
+                    <form id="questionnaireForm" style="display:grid; gap:20px;">
+                        <!-- Questions will be loaded here -->
+                    </form>
+                    <div style="margin-top:20px; display:flex; gap:8px;">
+                        <button class="btn btn-secondary" onclick="goBackToRiskAppetite()">Back</button>
+                        <button class="btn" onclick="proceedToHeatmap()">Next: Heat Map</button>
+                    </div>
+                </div>
+                
+                <!-- Step 5: Heat Map Items -->
+                <div id="step5" style="display:none;">
+                    <h2>Step 5: Risk Heat Map Items</h2>
+                    <div style="background:#f9fafb; border:1px dashed #d1d5db; border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.9em; color:#4b5563;">
+                        <strong>Example inputs:</strong><br>
+                        Bias in Model Output — Impact: 4, Likelihood: 3<br>
+                        Data Privacy Breach — Impact: 5, Likelihood: 4<br>
+                        Model Hallucination — Impact: 3, Likelihood: 5<br>
+                        Regulatory Non-Compliance — Impact: 5, Likelihood: 3
+                    </div>
+                    <div id="heatmapItemsList" style="margin-bottom:20px;">
+                        <!-- Heat map items will be listed here -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="addHeatmapItem()" style="margin-bottom:20px;">+ Add Item</button>
+                    <div style="margin-top:20px; display:flex; gap:8px;">
+                        <button class="btn btn-secondary" onclick="goBackToQuestionnaire()">Back</button>
+                        <button class="btn" id="generateHeatmapBtn" onclick="generateReport()">Generate Report with Heat Map</button>
+                    </div>
+                    <div id="reportProgressWrap" style="margin-top:10px; display:none;">
+                        <div style="height:8px; background:#eee; border-radius:999px; overflow:hidden;">
+                            <div id="reportProgressBar" style="height:8px; width:0%; background:var(--accent);"></div>
+                        </div>
+                        <div id="reportProgressText" style="font-size:0.85em; color:#6b21a8; margin-top:4px;"></div>
+                    </div>
+                </div>
+                
+                <!-- Step 6: Editable Report View -->
+                <div id="step6" style="display:none;">
+                    <div style="margin-bottom:20px;">
+                        <button class="btn btn-secondary" onclick="backToUpload()" style="width:auto; padding:8px 16px; font-size:0.9em;">← Back to Upload</button>
+                    </div>
+                    
+                    <div style="text-align:center; margin-bottom:32px; padding-bottom:24px; border-bottom:2px solid #e5e7eb;">
+                        <div style="font-size:2em; margin-bottom:8px;">📋</div>
+                        <h2 style="margin:0 0 6px; color:var(--primary); font-size:1.6em;">NIST CSF Compliance Report</h2>
+                        <p id="reportOrgName" style="margin:0; color:#6b7280; font-size:1em;"></p>
+                        <p id="reportDate" style="margin:4px 0 0; color:#9ca3af; font-size:0.85em;"></p>
+                        <div style="margin-top:16px; display:flex; gap:10px; justify-content:center;">
+                            <button class="btn" onclick="saveAllEdits()">💾 Save Edits</button>
+                            <button class="btn btn-secondary" onclick="printReport()">🖨️ Print as PDF</button>
+                            <button class="btn btn-secondary" onclick="startOver()">↩️ New Assessment</button>
+                        </div>
+                    </div>
+
+                    <div class="report-block" id="block-summary">
+                        <div class="report-block-header">
+                            <span>📊 Compliance Summary</span>
+                            <button class="edit-toggle-btn" onclick="toggleEdit('summary-content')">✏️ Edit</button>
+                        </div>
+                        <div id="summary-content" class="report-block-body" contenteditable="false"></div>
+                    </div>
+
+                    <div class="report-block" id="block-gaps">
+                        <div class="report-block-header">
+                            <span>🔍 Compliance Gap Analysis</span>
+                            <button class="edit-toggle-btn" onclick="toggleEdit('gaps-content')">✏️ Edit</button>
+                        </div>
+                        <div id="gaps-content" class="report-block-body"></div>
+                    </div>
+
+                    <div class="report-block" id="block-risk">
+                        <div class="report-block-header">
+                            <span>⚠️ Risk Assessment</span>
+                            <button class="edit-toggle-btn" onclick="toggleEdit('risk-content')">✏️ Edit</button>
+                        </div>
+                        <div id="risk-content" class="report-block-body"></div>
+                    </div>
+
+                    <div class="report-block" id="block-heatmap" style="display:none;">
+                        <div class="report-block-header">
+                            <span>🌡️ Risk Heat Map</span>
+                            <button class="edit-toggle-btn" onclick="toggleEdit('heatmap-content')">✏️ Edit</button>
+                        </div>
+                        <div id="heatmap-content" class="report-block-body"></div>
+                    </div>
+
+                    <div class="report-block" id="block-recs">
+                        <div class="report-block-header">
+                            <span>✅ Recommendations</span>
+                            <button class="edit-toggle-btn" onclick="toggleEdit('recs-content')">✏️ Edit</button>
+                        </div>
+                        <div id="recs-content" class="report-block-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sidebar">
+        <div class="sidebar-tabs">
+            <button class="sidebar-tab active" id="tab-gaps" onclick="setSidebarTab('gaps')">Compliance Gaps</button>
+            <button class="sidebar-tab" id="tab-chatbot" onclick="setSidebarTab('chatbot')">Policy Chatbot</button>
+        </div>
+        <div class="sidebar-panel active" id="panel-gaps">
+            <div class="sidebar-header">Compliance Gaps</div>
+            <div class="sidebar-content" id="analysisResults"></div>
+        </div>
+        <div class="sidebar-panel" id="panel-chatbot">
+            <div class="sidebar-header">Policy Chatbot</div>
+            <div class="policy-chat-wrap">
+                <div class="policy-chat-upload">
+                    <input type="file" id="policy-chat-file" accept="application/pdf" style="display:none;">
+                    <button class="btn" onclick="triggerPolicyChatUpload()">Upload PDF</button>
+                    <button class="btn btn-secondary" onclick="policyChatClear()">Clear</button>
+                </div>
+                <div class="policy-chat-status" id="policy-chat-status"></div>
+                <div class="policy-chat-messages" id="policy-chat-messages">
+                    <div class="message assistant">
+                        <div class="message-bubble">
+                            Upload a policy PDF and ask questions about its content or NIST controls.
+                        </div>
+                        <div class="message-time">Ready</div>
+                    </div>
+                </div>
+                <div class="policy-chat-input-row">
+                    <input type="text" id="policy-chat-input" placeholder="Ask a policy or NIST question..." onkeypress="handlePolicyChatKeypress(event)">
+                    <button id="policy-chat-send" onclick="policyChatSend()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot UI -->
+    <div id="chatbot-window">
+        <div id="chatbot-header">
+            <span>🤖 ComplyAI Assistant</span>
+            <button onclick="toggleChatbot()" style="background:none; border:none; color:white; cursor:pointer; font-size:18px;">✕</button>
+        </div>
+        <div id="chatbot-messages">
+            <div class="message assistant">
+                <div class="message-bubble">
+                    Hello! I'm your ComplyAI assistant. I can help you with:
+                    <br><br>
+                    🔍 <strong>Validator Mode</strong>: Defend findings using NIST logic
+                    <br>
+                    🔧 <strong>Remediation Coach</strong>: Provide audit-ready policy rewrites
+                    <br>
+                    📊 <strong>Cross-Document Expert</strong>: Find conflicts across documents
+                    <br><br>
+                    Ask me anything about NIST compliance or click on a compliance gap for contextual help!
+                </div>
+                <div class="message-time">Just now</div>
+            </div>
+        </div>
+        <div id="chatbot-input-container">
+            <input type="text" id="chatbot-input" placeholder="Ask about NIST compliance..." onkeypress="handleChatInputKeypress(event)">
+            <button id="chatbot-send" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        let currentFilename = "";
+        let uploadInProgress = null;
+        let analysisInProgress = false;
+        let reportProgressTimer = null;
+        let chatHistory = [];
+        let currentFindingId = null;
+        let currentMode = "pdf";
+        let selectedFunctions = [];
+        let currentSessionId = null;
+        let currentReportId = null;
+        
+        const apiBase = window.location.origin.startsWith("http") ? window.location.origin : "http://127.0.0.1:5002";
+
+        // ==================== SEQUENTIAL FLOW FUNCTIONS ====================
+        function updateFlowIndicator(currentStep) {
+            // Reset all indicators (now 6 steps)
+            const indicators = ['stepIndicator1', 'stepIndicator2', 'stepIndicator3', 'stepIndicator4', 'stepIndicator5', 'stepIndicator6'];
+            indicators.forEach((id, index) => {
+                const indicator = document.getElementById(id);
+                if (index + 1 < currentStep) {
+                    // Completed step
+                    indicator.style.background = '#10b981';
+                    indicator.style.color = 'white';
+                } else if (index + 1 === currentStep) {
+                    // Current step
+                    indicator.style.background = 'var(--primary)';
+                    indicator.style.color = 'white';
+                } else {
+                    // Future step
+                    indicator.style.background = '#e5e7eb';
+                    indicator.style.color = '#9ca3af';
+                }
+            });
+
+            document.getElementById('policy-chat-file').addEventListener('change', async () => {
+                const file = document.getElementById('policy-chat-file').files[0];
+                if (!file) return;
+
+                const status = document.getElementById('policy-chat-status');
+                status.textContent = 'Uploading and indexing...';
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch(`${apiBase}/api/chatbot/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        status.textContent = data.error || 'Upload failed.';
+                        return;
+                    }
+
+                    status.textContent = `Indexed: ${data.filename}`;
+                } catch (error) {
+                    status.textContent = `Upload error: ${error.message}`;
+                }
+            });
+        }
+        
+        function proceedToQuestionnaireMode() {
+            // Hide PDF mode
+            document.getElementById('pdfMode').style.display = 'none';
+            // Show questionnaire mode
+            document.getElementById('questionnaireMode').style.display = 'flex';
+            // Update flow indicator (now step 2 for org info)
+            updateFlowIndicator(2);
+            // Load NIST functions for questionnaire
+            loadNISTFunctions();
+        }
+
+        // ==================== QUESTIONNAIRE FLOW ====================
+        async function loadNISTFunctions() {
+            try {
+                const response = await fetch(`${apiBase}/api/nist-functions`);
+                const data = await response.json();
+                
+                const container = document.getElementById('nistFunctionsContainer');
+                container.innerHTML = '';
+                selectedFunctions = [];
+                
+                if (data.functions && data.functions.length > 0) {
+                    data.functions.forEach(func => {
+                        const label = document.createElement('label');
+                        label.className = 'function-checkbox';
+                        label.innerHTML = `
+                            <input type="checkbox" value="${func.function}" onchange="updateSelectedFunctions()">
+                            <div>
+                                <strong>${func.function}</strong>
+                                <div style="font-size:0.85em; color:#666;">${func.total_questions} questions</div>
+                                <div style="font-size:0.8em; color:#999;">~${func.estimated_time_minutes} min</div>
+                            </div>
+                        `;
+                        container.appendChild(label);
+                    });
+                } else {
+                    container.innerHTML = '<p>No NIST functions available</p>';
+                }
+            } catch (error) {
+                console.error('Error loading NIST functions:', error);
+                document.getElementById('nistFunctionsContainer').innerHTML = '<p style="color:red;">Error loading NIST functions</p>';
+            }
+        }
+
+        function updateSelectedFunctions() {
+            const checkboxes = document.querySelectorAll('#nistFunctionsContainer input[type="checkbox"]');
+            selectedFunctions = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            
+            // Update visual selection
+            checkboxes.forEach(cb => {
+                const label = cb.closest('.function-checkbox');
+                if (cb.checked) {
+                    label.classList.add('selected');
+                } else {
+                    label.classList.remove('selected');
+                }
+            });
+        }
+
+        function proceedToOrgInfo() {
+            if (selectedFunctions.length === 0) {
+                alert('Please select at least one NIST function');
+                return;
+            }
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }
+
+        function goBackToStep1() {
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            updateFlowIndicator(1);
+        }
+
+        function goBackToOrgInfo() {
+            document.getElementById('step2').style.display = 'block';
+            document.getElementById('step3_risk').style.display = 'none';
+            updateFlowIndicator(2);
+        }
+        
+        function goBackToRiskAppetite() {
+            document.getElementById('step3_risk').style.display = 'block';
+            document.getElementById('step4').style.display = 'none';
+            updateFlowIndicator(3);
+        }
+        
+        function goBackToQuestionnaire() {
+            document.getElementById('step4').style.display = 'block';
+            document.getElementById('step5').style.display = 'none';
+            updateFlowIndicator(4);
+        }
+
+        async function proceedToRiskAppetite() {
+            // Validate form
+            const form = document.getElementById('orgInfoForm');
+            if (!form.checkValidity()) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Load risk appetite questions
+            await loadRiskAppetiteQuestions();
+            
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3_risk').style.display = 'block';
+            updateFlowIndicator(3);
+        }
+
+        async function proceedToQuestionnaire() {
+            // Validate risk appetite form
+            const form = document.getElementById('riskAppetiteForm');
+            if (!form.checkValidity()) {
+                alert('Please answer all risk appetite questions');
+                return;
+            }
+            
+            try {
+                const orgData = {
+                    organization_name: document.getElementById('org_name').value,
+                    industry: document.getElementById('org_industry').value,
+                    size: document.getElementById('org_size').value,
+                    contact_person: document.getElementById('org_contact').value,
+                    contact_email: document.getElementById('org_email').value,
+                    scope: document.getElementById('org_scope').value
+                };
+                
+                const response = await fetch(`${apiBase}/api/generate-questions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        selected_functions: selectedFunctions,
+                        organization_info: orgData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    alert('Error: ' + (data.error || 'Failed to generate questions'));
+                    return;
+                }
+                
+                currentSessionId = data.session_id;
+                
+                // Submit risk appetite before proceeding
+                await submitRiskAppetite();
+                
+                displayQuestionnaire(data.questions);
+                
+                document.getElementById('step3_risk').style.display = 'none';
+                document.getElementById('step4').style.display = 'block';
+                updateFlowIndicator(4);
+                
+            } catch (error) {
+                console.error('Error generating questions:', error);
+                alert('Error generating questions: ' + error.message);
+            }
+        }
+        
+        async function loadRiskAppetiteQuestions() {
+            try {
+                const response = await fetch(`${apiBase}/api/risk-appetite-questions`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    console.error('Failed to load risk appetite questions');
+                    return;
+                }
+                
+                displayRiskAppetiteQuestions(data.questions);
+            } catch (error) {
+                console.error('Error loading risk appetite questions:', error);
+            }
+        }
+        
+        function displayRiskAppetiteQuestions(questions) {
+            const form = document.getElementById('riskAppetiteForm');
+            form.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                
+                let fieldHTML = `<div class="question-id">Question ${index + 1}/${questions.length}</div>`;
+                fieldHTML += `<label>${question.question_text}</label>`;
+                
+                if (question.question_type === 'multiple_choice' && question.options) {
+                    // Special handling for multi-select question (RA_003)
+                    if (question.question_id === 'RA_003') {
+                        fieldHTML += '<div class="mcq-options-container">';
+                        question.options.forEach(option => {
+                            const optId = `q_${question.question_id}_${option.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                            fieldHTML += `
+                                <label class="mcq-option">
+                                    <input type="checkbox" name="q_${question.question_id}" value="${option}" id="${optId}">
+                                    <span class="mcq-option-text">${option}</span>
+                                </label>
+                            `;
+                        });
+                        fieldHTML += '</div>';
+                    } else {
+                        fieldHTML += '<div class="mcq-options-container">';
+                        question.options.forEach(option => {
+                            const optId = `q_${question.question_id}_${option.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                            fieldHTML += `
+                                <label class="mcq-option">
+                                    <input type="radio" name="q_${question.question_id}" value="${option}" id="${optId}" required>
+                                    <span class="mcq-option-text">${option}</span>
+                                </label>
+                            `;
+                        });
+                        fieldHTML += '</div>';
+                    }
+                }
+                
+                card.innerHTML = fieldHTML;
+                form.appendChild(card);
+            });
+        }
+        
+        async function submitRiskAppetite() {
+            const form = document.getElementById('riskAppetiteForm');
+            const formData = new FormData(form);
+            
+            // Collect answers
+            const answers = {};
+            const impactSensitivities = [];
+            
+            for (let [key, value] of formData.entries()) {
+                if (key === 'q_RA_003') {
+                    // Multi-select for impact sensitivities
+                    impactSensitivities.push(value);
+                } else if (key.startsWith('q_RA_001')) {
+                    answers.overall_risk_posture = value;
+                } else if (key.startsWith('q_RA_002')) {
+                    answers.max_acceptable_risk = value;
+                } else if (key.startsWith('q_RA_004')) {
+                    answers.high_risk_mitigation_timeline = value;
+                } else if (key.startsWith('q_RA_005')) {
+                    answers.preferred_risk_treatment = value;
+                }
+            }
+            
+            answers.impact_sensitivities = impactSensitivities;
+            
+            try {
+                const response = await fetch(`${apiBase}/api/submit-risk-appetite`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        organization_name: document.getElementById('org_name').value,
+                        ...answers
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    console.error('Failed to submit risk appetite:', data.error);
+                }
+            } catch (error) {
+                console.error('Error submitting risk appetite:', error);
+            }
+        }
+
+        function displayQuestionnaire(questions) {
+            const form = document.getElementById('questionnaireForm');
+            form.innerHTML = '';
+            
+            document.getElementById('questProgressText').textContent = `${questions.length} questions to answer`;
+            
+            questions.forEach((question, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                
+                const qNum = index + 1;
+                let fieldHTML = `<div class="question-id">Question ${qNum}/${questions.length}</div>`;
+                fieldHTML += `<label>${question.question_text}</label>`;
+                
+                if (question.question_type === 'multiple_choice' && question.options) {
+                    fieldHTML += '<div class="mcq-options-container">';
+                    question.options.forEach(option => {
+                        const optId = `q_${question.question_id}_${option.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+                        fieldHTML += `
+                            <label class="mcq-option">
+                                <input type="radio" name="q_${question.question_id}" value="${option}" id="${optId}">
+                                <span class="mcq-option-text">${option}</span>
+                            </label>
+                        `;
+                    });
+                    fieldHTML += '</div>';
+                } else if (question.question_type === 'boolean') {
+                    fieldHTML += '<div class="mcq-options-container">';
+                    const yesId = `q_${question.question_id}_yes`;
+                    const noId = `q_${question.question_id}_no`;
+                    fieldHTML += `
+                        <label class="mcq-option">
+                            <input type="radio" name="q_${question.question_id}" value="yes" id="${yesId}"> 
+                            <span class="mcq-option-text">Yes</span>
+                        </label>
+                        <label class="mcq-option">
+                            <input type="radio" name="q_${question.question_id}" value="no" id="${noId}"> 
+                            <span class="mcq-option-text">No</span>
+                        </label>
+                    `;
+                    fieldHTML += '</div>';
+                } else {
+                    fieldHTML += `<textarea name="q_${question.question_id}" placeholder="Your answer..." style="margin-top:8px;"></textarea>`;
+                }
+                
+                card.innerHTML = fieldHTML;
+                form.appendChild(card);
+            });
+        }
+        
+        function proceedToHeatmap() {
+            // No need to validate here - heatmap items are optional
+            document.getElementById('step4').style.display = 'none';
+            document.getElementById('step5').style.display = 'block';
+            updateFlowIndicator(5);
+            
+            // Initialize with one empty heatmap item
+            if (document.getElementById('heatmapItemsList').children.length === 0) {
+                addHeatmapItem();
+            }
+        }
+        
+        let heatmapItemCounter = 0;
+        
+        function addHeatmapItem() {
+            heatmapItemCounter++;
+            const itemsList = document.getElementById('heatmapItemsList');
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'question-card';
+            itemDiv.id = `heatmap_item_${heatmapItemCounter}`;
+            itemDiv.style.position = 'relative';
+            
+            itemDiv.innerHTML = `
+                <button type="button" onclick="removeHeatmapItem(${heatmapItemCounter})" style="position:absolute; top:8px; right:8px; background:#dc2626; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:0.85em;">Remove</button>
+                <h4 style="margin:0 0 12px 0;">Item ${heatmapItemCounter}</h4>
+                <label style="display:block; margin-bottom:12px;">
+                    <strong>Item Name *</strong>
+                    <input type="text" class="hm-name" placeholder="e.g., Customer Data Policy" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                </label>
+                <label style="display:block; margin-bottom:12px;">
+                    <strong>Description *</strong>
+                    <textarea class="hm-description" placeholder="What does this document/system govern?" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px; min-height:60px;"></textarea>
+                </label>
+                <label style="display:block; margin-bottom:12px;">
+                    <strong>Impact Score (1-5) *</strong>
+                    <p style="font-size:0.85em; color:#666; margin:4px 0;">How severe are the consequences if this fails or is misused?</p>
+                    <input type="number" class="hm-impact" min="1" max="5" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block;">
+                </label>
+                <label style="display:block; margin-bottom:12px;">
+                    <strong>Likelihood Score (1-5) *</strong>
+                    <p style="font-size:0.85em; color:#666; margin:4px 0;">How likely is it that a harmful event will occur?</p>
+                    <input type="number" class="hm-likelihood" min="1" max="5" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block;">
+                </label>
+                <label style="display:block; margin-bottom:12px;">
+                    <strong>Primary Risk Type *</strong>
+                    <select class="hm-risk-type" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                        <option value="">Select Risk Type</option>
+                        <option value="Safety / Human harm">Safety / Human harm</option>
+                        <option value="Regulatory / Legal">Regulatory / Legal</option>
+                        <option value="Data privacy / Confidentiality">Data privacy / Confidentiality</option>
+                        <option value="Financial / Fraud">Financial / Fraud</option>
+                        <option value="Operational / Availability">Operational / Availability</option>
+                        <option value="Fairness / Bias / Ethics">Fairness / Bias / Ethics</option>
+                    </select>
+                </label>
+                <label style="display:block; margin-bottom:0;">
+                    <strong>Residual Risk Level *</strong>
+                    <p style="font-size:0.85em; color:#666; margin:4px 0;">Expert judgment considering existing controls</p>
+                    <select class="hm-residual" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; display:block; margin-top:4px;">
+                        <option value="">Select Risk Level</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </label>
+            `;
+            
+            itemsList.appendChild(itemDiv);
+        }
+        
+        function removeHeatmapItem(itemId) {
+            const item = document.getElementById(`heatmap_item_${itemId}`);
+            if (item) {
+                item.remove();
+            }
+        }
+        
+        function collectHeatmapItems() {
+            const items = [];
+            const itemDivs = document.querySelectorAll('#heatmapItemsList > div');
+            
+            itemDivs.forEach((div, index) => {
+                const name = div.querySelector('.hm-name').value.trim();
+                const description = div.querySelector('.hm-description').value.trim();
+                const impact = parseInt(div.querySelector('.hm-impact').value);
+                const likelihood = parseInt(div.querySelector('.hm-likelihood').value);
+                const riskType = div.querySelector('.hm-risk-type').value;
+                const residual = div.querySelector('.hm-residual').value;
+                
+                if (name && description && impact && likelihood && riskType && residual) {
+                    items.push({
+                        name: name,
+                        description: description,
+                        impact_score: impact,
+                        likelihood_score: likelihood,
+                        primary_risk_type: riskType,
+                        residual_risk_level: residual
+                    });
+                }
+            });
+            
+            return items;
+        }
+
+        // ==================== EDITABLE REPORT RENDERING ====================
+
+        function toggleEdit(blockId) {
+            const el = document.getElementById(blockId);
+            const isEditing = el.contentEditable === 'true';
+            el.contentEditable = isEditing ? 'false' : 'true';
+            const btn = el.previousElementSibling.querySelector('.edit-toggle-btn');
+            btn.textContent = isEditing ? '✏️ Edit' : '🔒 Lock';
+            if (!isEditing) el.focus();
+        }
+
+        function saveAllEdits() {
+            ['summary-content', 'gaps-content', 'risk-content', 'heatmap-content', 'recs-content'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.contentEditable = 'false';
+            });
+            document.querySelectorAll('.edit-toggle-btn').forEach(btn => btn.textContent = '✏️ Edit');
+            alert('✅ Edits saved to view. Note: changes are local to this session.');
+        }
+
+        async function loadAndDisplayFullReport(reportId) {
+            try {
+                const resp = await fetch(`${apiBase}/api/reports/${reportId}/full`);
+                const data = await resp.json();
+                if (!resp.ok) {
+                    console.error('Failed to load report');
+                    return;
+                }
+
+                renderSummary(data);
+                renderGaps(data.compliance_gaps || []);
+                renderRiskAssessment(data.risk_assessment || []);
+                renderHeatmap(data.heatmap);
+                renderRecommendations(data.recommendations || []);
+            } catch (e) {
+                console.error('Error loading full report:', e);
+            }
+        }
+
+        function renderSummary(data) {
+            const org = data.organization || {};
+            const summary = data.compliance_summary || {};
+
+            document.getElementById('reportOrgName').textContent = org.organization_name || '';
+            document.getElementById('reportDate').textContent = `Assessment Date: ${new Date(data.generated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+
+            document.getElementById('summary-content').innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Organization</div>
+                        <div style="font-weight:700; font-size:1.1em;">${org.organization_name || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Industry</div>
+                        <div style="font-weight:600;">${org.industry || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Assessment Scope</div>
+                        <div>${org.scope || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.85em; color:#6b7280; margin-bottom:2px;">Contact</div>
+                        <div>${org.contact_person || 'N/A'} — ${org.contact_email || ''}</div>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:8px;">
+                    ${metricCard('Compliance', (summary.compliance_percentage || 0).toFixed(1) + '%', summary.compliance_percentage >= 70 ? '#22c55e' : '#dc2626')}
+                    ${metricCard('Risk Score', (summary.overall_risk_score || 0).toFixed(1) + '/10', '#f59e0b')}
+                    ${metricCard('Total Gaps', summary.total_gaps || 0, '#ea580c')}
+                    ${metricCard('Critical Findings', summary.critical_findings || 0, '#dc2626')}
+                </div>
+            `;
+        }
+
+        function metricCard(label, value, color) {
+            return `
+                <div style="background:${color}15; border:1px solid ${color}40; border-radius:8px; padding:14px; text-align:center;">
+                    <div style="font-size:1.6em; font-weight:800; color:${color};">${value}</div>
+                    <div style="font-size:0.8em; color:#6b7280; margin-top:4px;">${label}</div>
+                </div>
+            `;
+        }
+
+        function renderGaps(gaps) {
+            if (!gaps.length) {
+                document.getElementById('gaps-content').innerHTML = '<p style="color:#22c55e;">✅ No compliance gaps identified.</p>';
+                return;
+            }
+            const html = gaps.map(gap => {
+                const level = (gap.risk_level || 'low').toLowerCase();
+                return `
+                    <div class="rpt-gap-card ${level}">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                            <strong style="font-size:0.95em;">${gap.control_id}: ${gap.control_title}</strong>
+                            <span class="rpt-badge ${level}">${gap.risk_level}</span>
+                        </div>
+                        <div style="font-size:0.85em; color:#6b7280; margin:4px 0 8px;">${gap.category} → ${gap.subcategory}</div>
+                        <div style="margin-bottom:6px;"><strong>Description:</strong> ${gap.description}</div>
+                        <div style="margin-bottom:6px;"><strong>Reasoning:</strong> ${gap.reasoning}</div>
+                        ${gap.evidence_sources?.length ? `<div style="font-size:0.85em; color:#6b7280;"><strong>Evidence:</strong> ${gap.evidence_sources.join(', ')}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('gaps-content').innerHTML = html;
+        }
+
+        function renderRiskAssessment(risks) {
+            if (!risks.length) {
+                document.getElementById('risk-content').innerHTML = '<p>No risk items identified.</p>';
+                return;
+            }
+            const rows = risks.map(risk => {
+                const level = (risk.risk_level || 'low').toLowerCase();
+                return `
+                    <tr>
+                        <td><strong>${risk.title}</strong><br>
+                            <span style="font-size:0.85em; color:#6b7280;">${risk.description}</span></td>
+                        <td><span class="risk-level-pill ${level}">${risk.risk_level}</span></td>
+                        <td style="font-size:0.85em;">${risk.likelihood}</td>
+                        <td style="font-size:0.85em;">${risk.impact}</td>
+                        <td style="font-size:0.85em;">${risk.business_impact}</td>
+                        <td><span style="font-size:0.82em; background:#f3f4f6; padding:3px 8px; border-radius:4px;">${risk.mitigation_status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('risk-content').innerHTML = `
+                <table class="risk-table">
+                    <thead>
+                        <tr>
+                            <th>Risk Item</th><th>Level</th><th>Likelihood</th>
+                            <th>Impact</th><th>Business Impact</th><th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        function renderHeatmap(heatmap) {
+            if (!heatmap || !heatmap.items?.length) return;
+
+            document.getElementById('block-heatmap').style.display = 'block';
+
+            const imageHtml = heatmap.report_id
+                ? `<div style="margin-bottom:16px;">
+                       <img src="${apiBase}/api/heatmap-image/${heatmap.report_id}" alt="Risk Heat Map" style="max-width:100%; height:auto; border-radius:8px;">
+                   </div>`
+                : '';
+
+            const appetiteBar = heatmap.items_above_appetite > 0
+                ? `<div style="background:#fee2e2; border:1px solid #dc2626; border-radius:8px; padding:10px 14px; margin-bottom:16px; color:#dc2626; font-weight:600;">
+                       ⚠️ ${heatmap.items_above_appetite} item(s) exceed organizational risk appetite (max: ${heatmap.risk_appetite})
+                   </div>`
+                : `<div style="background:#ecfdf5; border:1px solid #22c55e; border-radius:8px; padding:10px 14px; margin-bottom:16px; color:#16a34a; font-weight:600;">
+                       ✅ All items within organizational risk appetite
+                   </div>`;
+
+            const header = `
+                <div style="display:grid; grid-template-columns:1fr 80px 80px 100px; gap:8px; padding:8px 14px; font-size:0.82em; font-weight:700; color:#6b7280; text-transform:uppercase;">
+                    <div>Item</div><div style="text-align:center;">Likelihood</div>
+                    <div style="text-align:center;">Impact</div><div style="text-align:center;">Risk Level</div>
+                </div>
+            `;
+
+            const items = heatmap.items.map(item => {
+                const level = (item.risk_level || 'low').toLowerCase();
+                const aboveFlag = item.above_appetite
+                    ? '<span style="font-size:0.75em; background:rgba(0,0,0,0.2); padding:2px 6px; border-radius:4px; margin-left:8px;">⚠️ Above Appetite</span>'
+                    : '';
+                return `
+                    <div class="heatmap-item ${level}" title="${item.reasoning}">
+                        <div>${item.name}${aboveFlag}</div>
+                        <div class="heatmap-item-label">${item.likelihood}/5</div>
+                        <div class="heatmap-item-label">${item.impact}/5</div>
+                        <div class="heatmap-item-label">${item.risk_level}</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('heatmap-content').innerHTML = imageHtml + appetiteBar + header + `<div class="heatmap-grid">${items}</div>`;
+        }
+
+        function renderRecommendations(recs) {
+            if (!recs.length) {
+                document.getElementById('recs-content').innerHTML = '<p>No recommendations generated.</p>';
+                return;
+            }
+            const grouped = { High: [], Medium: [], Low: [] };
+            recs.forEach(r => (grouped[r.priority] || grouped['Low']).push(r));
+
+            const priorityColor = { High: '#dc2626', Medium: '#f59e0b', Low: '#22c55e' };
+
+            let html = '';
+            ['High', 'Medium', 'Low'].forEach(priority => {
+                if (!grouped[priority].length) return;
+                html += `<div style="font-weight:700; color:${priorityColor[priority]}; font-size:0.95em; margin:16px 0 8px; text-transform:uppercase; letter-spacing:0.05em;">
+                            ${priority} Priority
+                         </div>`;
+                grouped[priority].forEach(rec => {
+                    const steps = rec.implementation_steps?.length
+                        ? `<ul style="margin:8px 0 0; padding-left:20px; font-size:0.9em;">
+                               ${rec.implementation_steps.map(s => `<li>${s}</li>`).join('')}
+                           </ul>` : '';
+                    html += `
+                        <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:14px; margin-bottom:10px; border-left:4px solid ${priorityColor[priority]};">
+                            <div style="font-weight:700; margin-bottom:4px;">${rec.title}</div>
+                            <div style="font-size:0.85em; color:#6b7280; margin-bottom:8px;">Estimated effort: ${rec.estimated_effort}</div>
+                            <div style="font-size:0.9em;">${rec.description}</div>
+                            ${steps}
+                        </div>
+                    `;
+                });
+            });
+
+            document.getElementById('recs-content').innerHTML = html;
+        }
+
+        async function generateReport() {
+            const form = document.getElementById('questionnaireForm');
+            const formData = new FormData(form);
+            const answers = [];
+            
+            for (let [key, value] of formData.entries()) {
+                if (key.startsWith('q_') && value.trim()) {
+                    answers.push({
+                        question_id: key,
+                        answer: value,
+                        confidence: 0.8
+                    });
+                }
+            }
+            
+            if (answers.length === 0) {
+                alert('Please answer at least one question');
+                return;
+            }
+            
+            // Collect heatmap items
+            const heatmapItems = collectHeatmapItems();
+            
+            if (heatmapItems.length === 0) {
+                if (!confirm('No heat map items added. Continue without heat map?')) {
+                    return;
+                }
+            }
+            
+            document.getElementById('generateHeatmapBtn').disabled = true;
+            document.getElementById('generateHeatmapBtn').textContent = 'Generating Report...';
+            document.getElementById('reportProgressWrap').style.display = 'block';
+            document.getElementById('reportProgressBar').style.width = '0%';
+            document.getElementById('reportProgressText').textContent = 'Starting report generation...';
+
+            if (reportProgressTimer) {
+                clearInterval(reportProgressTimer);
+                reportProgressTimer = null;
+            }
+
+            reportProgressTimer = setInterval(async () => {
+                try {
+                    const resp = await fetch(`${apiBase}/api/report-progress?session_id=${encodeURIComponent(currentSessionId)}`);
+                    const progressData = await resp.json();
+
+                    if (progressData.status === 'running') {
+                        const pct = progressData.percentage || 0;
+                        const stage = progressData.stage || 'Generating report';
+                        document.getElementById('reportProgressBar').style.width = `${pct}%`;
+                        document.getElementById('reportProgressText').textContent = `${stage} (${pct}%)`;
+                    } else if (progressData.status === 'done') {
+                        document.getElementById('reportProgressBar').style.width = '100%';
+                        document.getElementById('reportProgressText').textContent = 'Report ready!';
+                        clearInterval(reportProgressTimer);
+                        reportProgressTimer = null;
+                    } else if (progressData.status === 'error') {
+                        document.getElementById('reportProgressText').textContent = progressData.error || 'Report generation failed';
+                        clearInterval(reportProgressTimer);
+                        reportProgressTimer = null;
+                    }
+                } catch (error) {
+                    document.getElementById('reportProgressText').textContent = 'Waiting for progress update...';
+                }
+            }, 1000);
+            
+            try {
+                // Step 1: Submit heatmap items
+                let heatmapReportId = null;
+                if (heatmapItems.length > 0) {
+                    document.getElementById('reportProgressText').textContent = 'Submitting heat map items...';
+                    
+                    const hmResponse = await fetch(`${apiBase}/api/submit-heatmap-items`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            session_id: currentSessionId,
+                            items: heatmapItems
+                        })
+                    });
+                    
+                    if (hmResponse.ok) {
+                        // Generate heatmap
+                        document.getElementById('reportProgressText').textContent = 'Generating heat map visualization...';
+                        
+                        const heatmapGenResponse = await fetch(`${apiBase}/api/generate-heatmap`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                session_id: currentSessionId
+                            })
+                        });
+                        
+                        if (heatmapGenResponse.ok) {
+                            const heatmapData = await heatmapGenResponse.json();
+                            heatmapReportId = heatmapData.report_id;
+                        }
+                    }
+                }
+                
+                // Step 2: Generate compliance report
+                document.getElementById('reportProgressText').textContent = 'Generating compliance report...';
+                
+                const response = await fetch(`${apiBase}/api/submit-answers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        answers: answers,
+                        filename: currentFilename || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    alert('Error: ' + (data.error || 'Failed to generate report'));
+                    document.getElementById('generateHeatmapBtn').disabled = false;
+                    document.getElementById('generateHeatmapBtn').textContent = 'Generate Report with Heat Map';
+                    if (reportProgressTimer) {
+                        clearInterval(reportProgressTimer);
+                        reportProgressTimer = null;
+                    }
+                    return;
+                }
+                
+                currentReportId = data.report_id;
+
+                if (!heatmapReportId) {
+                    try {
+                        document.getElementById('reportProgressText').textContent = 'Generating heat map from compliance gaps...';
+                        const gapHeatmapResponse = await fetch(`${apiBase}/api/generate-heatmap-from-gaps`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                report_id: currentReportId,
+                                session_id: currentSessionId
+                            })
+                        });
+
+                        if (gapHeatmapResponse.ok) {
+                            const gapHeatmapData = await gapHeatmapResponse.json();
+                            heatmapReportId = gapHeatmapData.report_id;
+                        }
+                    } catch (error) {
+                        console.warn('Heatmap from gaps failed:', error);
+                    }
+                }
+                
+                if (reportProgressTimer) {
+                    clearInterval(reportProgressTimer);
+                    reportProgressTimer = null;
+                }
+                document.getElementById('reportProgressBar').style.width = '100%';
+                document.getElementById('reportProgressText').textContent = 'Report ready!';
+
+                await loadAndDisplayFullReport(currentReportId);
+
+                document.getElementById('sidebar').style.display = 'none';
+                document.getElementById('main').classList.add('report-mode');
+                
+                document.getElementById('step5').style.display = 'none';
+                document.getElementById('step6').style.display = 'block';
+                updateFlowIndicator(6);
+                
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Error: ' + error.message);
+                document.getElementById('generateHeatmapBtn').disabled = false;
+                document.getElementById('generateHeatmapBtn').textContent = 'Generate Report with Heat Map';
+                if (reportProgressTimer) {
+                    clearInterval(reportProgressTimer);
+                    reportProgressTimer = null;
+                }
+            }
+        }
+        
+        async function displayHeatmap(reportId) {
+            try {
+                const response = await fetch(`${apiBase}/api/heatmap-report/${reportId}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    console.error('Failed to fetch heatmap report');
+                    return;
+                }
+                
+                const container = document.getElementById('heatmapContainer');
+                const imagePath = `${apiBase}/api/heatmap-image/${reportId}`;
+                
+                document.getElementById('heatmapImage').src = imagePath;
+                
+                let summary = `<p><strong>Items Analyzed:</strong> ${data.total_items}</p>`;
+                if (data.items_above_appetite > 0) {
+                    summary += `<p style="color:#dc2626;"><strong>⚠️ Items Above Risk Appetite:</strong> ${data.items_above_appetite}</p>`;
+                } else {
+                    summary += `<p style="color:#10b981;"><strong>✓ All items within risk appetite</strong></p>`;
+                }
+                
+                document.getElementById('heatmapSummary').innerHTML = summary;
+                container.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error displaying heatmap:', error);
+            }
+        }
+
+        function displayReport(report) {
+            const container = document.getElementById('reportContainer');
+            container.innerHTML = '';
+            
+            let html = `
+                <div class="report-section">
+                    <h3>Organization Information</h3>
+                    <div class="report-item">
+                        <strong>Organization:</strong> ${report.organization_info?.organization_name || 'N/A'}<br>
+                        <strong>Industry:</strong> ${report.organization_info?.industry || 'N/A'}<br>
+                        <strong>Size:</strong> ${report.organization_info?.size || 'N/A'}<br>
+                        <strong>Contact:</strong> ${report.organization_info?.contact_person || 'N/A'} (${report.organization_info?.contact_email || 'N/A'})
+                    </div>
+                </div>
+            `;
+            
+            if (report.compliance_summary) {
+                html += `
+                    <div class="report-section">
+                        <h3>Compliance Summary</h3>
+                        <div class="report-item">
+                            ${report.compliance_summary}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (report.nist_functions && report.nist_functions.length > 0) {
+                html += '<div class="report-section"><h3>NIST Functions Assessment</h3>';
+                report.nist_functions.forEach(func => {
+                    html += `
+                        <div class="report-item">
+                            <strong>${func.function_name}</strong> (${func.maturity_level})<br>
+                            <span style="font-size:0.9em; color:#666;">${func.findings}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            if (report.identified_gaps && report.identified_gaps.length > 0) {
+                html += '<div class="report-section"><h3>Identified Gaps</h3>';
+                report.identified_gaps.forEach(gap => {
+                    html += `
+                        <div class="report-item">
+                            <strong>${gap.category}</strong><br>
+                            <span style="font-size:0.9em;">${gap.description}</span><br>
+                            <span style="font-size:0.85em; color:#666;">Recommendation: ${gap.recommendation}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        async function downloadReport(format) {
+            if (!currentReportId) {
+                alert('No report to download');
+                return;
+            }
+            
+            const btn = format === 'pdf' ? document.getElementById('downloadPdfBtn') : document.getElementById('downloadDocxBtn');
+            btn.disabled = true;
+            const originalText = btn.textContent;
+            btn.textContent = 'Downloading...';
+            
+            try {
+                window.location.href = `${apiBase}/api/download-report/${currentReportId}/${format}`;
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }, 2000);
+            } catch (error) {
+                console.error('Error downloading report:', error);
+                alert('Error downloading report');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        function printReport() {
+            // Ensure all content is visible and rendered
+            document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                el.contentEditable = 'false';
+            });
+            
+            // Ensure all report blocks are visible
+            document.querySelectorAll('.report-block').forEach(block => {
+                block.style.display = '';
+            });
+            
+            // Force page width for print
+            const mainEl = document.getElementById('main');
+            const origWidth = mainEl.style.maxWidth;
+            
+            // Small delay to ensure rendering is complete
+            setTimeout(() => {
+                // Use the browser's print dialog
+                window.print();
+                
+                // Restore original width after printing is complete or cancelled
+                setTimeout(() => {
+                    mainEl.style.maxWidth = origWidth;
+                }, 500);
+            }, 100);
+        }
+
+        function backToUpload() {
+            // Go back to upload page (same as start over)
+            startOver();
+        }
+
+        function startOver() {
+            // Reset to PDF mode (Step 1)
+            document.getElementById('questionnaireMode').style.display = 'none';
+            document.getElementById('pdfMode').style.display = 'flex';
+            document.getElementById('sidebar').style.display = 'flex';
+            document.getElementById('main').classList.remove('report-mode');
+            setSidebarTab('gaps');
+            document.getElementById('analysisResults').innerHTML = '';
+            
+            selectedFunctions = [];
+            currentSessionId = null;
+            currentReportId = null;
+            currentFilename = '';
+            heatmapItemCounter = 0;
+            
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3_risk').style.display = 'none';
+            document.getElementById('step4').style.display = 'none';
+            document.getElementById('step5').style.display = 'none';
+            document.getElementById('step6').style.display = 'none';
+            
+            document.getElementById('orgInfoForm').reset();
+            document.getElementById('riskAppetiteForm').innerHTML = '';
+            document.getElementById('questionnaireForm').innerHTML = '';
+            document.getElementById('heatmapItemsList').innerHTML = '';
+            document.getElementById('reportOrgName').textContent = '';
+            document.getElementById('reportDate').textContent = '';
+            document.getElementById('summary-content').innerHTML = '';
+            document.getElementById('gaps-content').innerHTML = '';
+            document.getElementById('risk-content').innerHTML = '';
+            document.getElementById('heatmap-content').innerHTML = '';
+            document.getElementById('recs-content').innerHTML = '';
+            document.getElementById('block-heatmap').style.display = 'none';
+            document.getElementById('reportProgressWrap').style.display = 'none';
+            document.getElementById('reportProgressBar').style.width = '0%';
+            document.getElementById('reportProgressText').textContent = '';
+            if (reportProgressTimer) {
+                clearInterval(reportProgressTimer);
+                reportProgressTimer = null;
+            }
+            
+            // Reset flow indicator to step 1
+            updateFlowIndicator(1);
+        }
+
+        // ==================== PDF ANALYSIS (EXISTING CODE) ====================
+
+        function triggerUpload() {
+            const input = document.getElementById('fileInput');
+            input.value = "";
+            input.click();
+        }
+
+        function setSidebarTab(tab) {
+            const gapsTab = document.getElementById('tab-gaps');
+            const chatTab = document.getElementById('tab-chatbot');
+            const gapsPanel = document.getElementById('panel-gaps');
+            const chatPanel = document.getElementById('panel-chatbot');
+
+            if (tab === 'chatbot') {
+                gapsTab.classList.remove('active');
+                chatTab.classList.add('active');
+                gapsPanel.classList.remove('active');
+                chatPanel.classList.add('active');
+                document.getElementById('policy-chat-input').focus();
+            } else {
+                chatTab.classList.remove('active');
+                gapsTab.classList.add('active');
+                chatPanel.classList.remove('active');
+                gapsPanel.classList.add('active');
+            }
+        }
+
+        function triggerPolicyChatUpload() {
+            const input = document.getElementById('policy-chat-file');
+            input.value = '';
+            input.click();
+        }
+
+        function handlePolicyChatKeypress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                policyChatSend();
+            }
+        }
+
+        function policyChatAddMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('policy-chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+
+            const messageHTML = `
+                <div class="message-bubble">${content}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            `;
+
+            messageDiv.innerHTML = messageHTML;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function policyChatSend() {
+            const input = document.getElementById('policy-chat-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            policyChatAddMessage(message, true);
+            input.value = '';
+
+            const sendBtn = document.getElementById('policy-chat-send');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+
+            try {
+                const response = await fetch(`${apiBase}/api/chatbot/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    policyChatAddMessage(data.response || 'No response returned.');
+                } else {
+                    policyChatAddMessage(`Error: ${data.error || 'Failed to get response'}`);
+                }
+            } catch (error) {
+                policyChatAddMessage(`Connection error: ${error.message}`);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+            }
+        }
+
+        function policyChatClear() {
+            fetch(`${apiBase}/api/chatbot/clear`, { method: 'POST' })
+                .then(() => {
+                    const messagesContainer = document.getElementById('policy-chat-messages');
+                    messagesContainer.innerHTML = `
+                        <div class="message assistant">
+                            <div class="message-bubble">
+                                Upload a policy PDF and ask questions about its content or NIST controls.
+                            </div>
+                            <div class="message-time">Cleared</div>
+                        </div>
+                    `;
+                });
+        }
+
+        // Chatbot Functions
+        function toggleChatbot() {
+            const chatWindow = document.getElementById('chatbot-window');
+            const chatToggle = document.getElementById('chatbot-toggle');
+            
+            if (chatWindow.style.display === 'flex') {
+                chatWindow.style.display = 'none';
+                chatToggle.style.display = 'block';
+            } else {
+                chatWindow.style.display = 'flex';
+                chatToggle.style.display = 'none';
+                document.getElementById('chatbot-input').focus();
+            }
+        }
+
+        function handleChatInputKeypress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function addMessage(content, isUser = false, findingContext = null) {
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            let messageHTML = '';
+            
+            // Add finding context if provided
+            if (findingContext) {
+                messageHTML += `<div class="finding-context">📍 Context: Finding ${findingContext.control_id} - ${findingContext.control_summary}</div>`;
+            }
+            
+            messageHTML += `<div class="message-bubble">${content}</div>`;
+            messageHTML += `<div class="message-time">${new Date().toLocaleTimeString()}</div>`;
+            
+            messageDiv.innerHTML = messageHTML;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant';
+            typingDiv.id = 'typing-indicator-message';
+            typingDiv.innerHTML = '<div class="typing-indicator">🤔 Thinking...</div>';
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator-message');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatbot-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, true);
+            input.value = '';
+            
+            // Show enhanced loading indicator
+            showTypingIndicator();
+            
+            // Disable send button while loading
+            const sendBtn = document.getElementById('chatbot-send');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '⏳';
+            
+            try {
+                const response = await fetch(`${apiBase}/api/audit-chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: message,
+                        finding_id: currentFindingId,
+                        history: chatHistory
+                    })
+                });
+                
+                const data = await response.json();
+                
+                hideTypingIndicator();
+                
+                // Re-enable send button
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '➤';
+                
+                if (response.ok) {
+                    // Add assistant response with streaming effect
+                    const findingContext = currentFindingId ? {
+                        control_id: currentFindingId,
+                        control_summary: 'Context from selected finding'
+                    } : null;
+                    
+                    // Simulate streaming by typing out response
+                    typewriterEffect(data.response, findingContext);
+                    
+                    // Update chat history
+                    chatHistory = data.history || [];
+                    
+                    // Clear finding context after use
+                    currentFindingId = null;
+                } else {
+                    addMessage(`Error: ${data.error || 'Failed to get response'}`, false);
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '➤';
+                addMessage(`Connection error: ${error.message}`, false);
+            }
+        }
+
+        function typewriterEffect(text, findingContext) {
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            
+            let messageHTML = '';
+            
+            // Add finding context if provided
+            if (findingContext) {
+                messageHTML += `<div class="finding-context">📍 Context: Finding ${findingContext.control_id} - ${findingContext.control_summary}</div>`;
+            }
+            
+            messageHTML += `<div class="message-bubble"></div>`;
+            messageHTML += `<div class="message-time">${new Date().toLocaleTimeString()}</div>`;
+            
+            messageDiv.innerHTML = messageHTML;
+            const bubble = messageDiv.querySelector('.message-bubble');
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Typewriter effect
+            let index = 0;
+            const speed = 10; // characters per frame
+            
+            function type() {
+                if (index < text.length) {
+                    bubble.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                }
+            }
+            
+            type();
+        }
+
+        function askAboutFinding(findingId, controlSummary) {
+            currentFindingId = findingId;
+            setSidebarTab('chatbot');
+            
+            setTimeout(() => {
+                document.getElementById('policy-chat-input').value = `Why is finding ${findingId} critical and how should I fix it?`;
+                document.getElementById('policy-chat-input').focus();
+            }, 300);
+        }
+
+        // Make chatbot window draggable
+        function makeChatbotDraggable() {
+            const chatWindow = document.getElementById('chatbot-window');
+            const chatHeader = document.getElementById('chatbot-header');
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            chatHeader.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+
+            function dragStart(e) {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === chatHeader || chatHeader.contains(e.target)) {
+                    isDragging = true;
+                    chatHeader.style.cursor = 'grabbing';
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    // Keep window within viewport bounds
+                    const rect = chatWindow.getBoundingClientRect();
+                    const maxX = window.innerWidth - rect.width;
+                    const maxY = window.innerHeight - rect.height;
+                    
+                    xOffset = Math.max(0, Math.min(currentX, maxX));
+                    yOffset = Math.max(0, Math.min(currentY, maxY));
+
+                    chatWindow.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+                chatHeader.style.cursor = 'move';
+            }
+        }
+
+        // Initialize draggable functionality when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            makeChatbotDraggable();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', async () => {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
+            const status = document.getElementById('uploadStatus');
+            status.textContent = "Uploading...";
+            document.getElementById('analyzeBtn').disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const blobUrl = URL.createObjectURL(file);
+            document.getElementById('pdfFrame').src = `${blobUrl}#toolbar=0&navpanes=0&scrollbar=0`;
+            document.getElementById('pdfFrame').style.display = "block";
+            document.getElementById('placeholder').style.display = "none";
+
+            try {
+                uploadInProgress = fetch(`${apiBase}/upload`, { method:'POST', body:formData });
+                const resp = await uploadInProgress;
+                if (!resp.ok) { status.textContent = "Upload failed"; return; }
+                const data = await resp.json();
+                currentFilename = data.filename;
+                document.getElementById('analyzeBtn').style.display = "inline-block";
+                document.getElementById('analyzeBtn').disabled = false;
+                status.textContent = `Upload complete: ${currentFilename}`;
+            } catch (err) {
+                status.textContent = `Upload error: ${err.message || err}`;
+            } finally { uploadInProgress = null; }
+        });
+
+        async function runAnalysis() {
+            if (analysisInProgress) return;
+            analysisInProgress = true;
+            if (uploadInProgress) { document.getElementById('uploadStatus').textContent="Waiting for upload..."; await uploadInProgress; }
+            if (!currentFilename) { document.getElementById('uploadStatus').textContent="Upload a PDF first."; analysisInProgress=false; return; }
+
+            const resultsDiv = document.getElementById('analysisResults');
+            const sidebar = document.getElementById('sidebar');
+
+            resultsDiv.innerHTML = '<p class="loading">Analyzing document... Please wait</p>';
+            document.getElementById('uploadStatus').textContent="Analyzing...";
+            document.getElementById('analyzeBtn').disabled=true;
+            document.getElementById('progressWrap').style.display="block";
+            document.getElementById('progressBar').style.width="0%";
+            document.getElementById('progressText').textContent="Starting analysis...";
+
+            const progressTimer = setInterval(async ()=>{
+                try {
+                    const resp = await fetch(`${apiBase}/progress?filename=${encodeURIComponent(currentFilename)}`);
+                    const data = await resp.json();
+                    if(data.status==="running"){
+                        const pct = data.percentage || 0;
+                        document.getElementById('progressBar').style.width=`${pct}%`;
+                        const batchInfo = data.total_batches > 0 
+                            ? `Processing batch ${data.processed_batches}/${data.total_batches}`
+                            : "Analyzing...";
+                        document.getElementById('progressText').textContent=`${batchInfo} (${pct}%)`;
+                    } else if(data.status==="done"){
+                        document.getElementById('progressBar').style.width="100%";
+                        document.getElementById('progressText').textContent="Analysis complete!";
+                        clearInterval(progressTimer);
+                    }
+                } catch {}
+            }, 1000);
+
+            let resp;
+            try { resp = await fetch(`${apiBase}/analyze`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({filename:currentFilename}) }); } 
+            catch(err){ document.getElementById('uploadStatus').textContent=`Analyze failed: ${err.message||err}`; analysisInProgress=false; return; }
+
+            const raw = await resp.text();
+            let data;
+            try{ data = JSON.parse(raw);} catch{ data = null;}
+            const results = Array.isArray(data)?data:[];
+
+            resultsDiv.innerHTML="";
+            clearInterval(progressTimer);
+            
+            if(results.length===0){ 
+                resultsDiv.innerHTML="<p>✅ No compliance gaps found!</p>";
+                sidebar.style.display="flex";
+                analysisInProgress=false; 
+                document.getElementById('analyzeBtn').disabled=false;
+                document.getElementById('uploadStatus').textContent="";
+                // Auto-proceed to questionnaire after 2 seconds
+                setTimeout(() => {
+                    alert('PDF analysis complete! Proceeding to questionnaire...');
+                    proceedToQuestionnaireMode();
+                }, 2000);
+                return; 
+            }
+
+            sidebar.style.display="flex";
+            document.getElementById('uploadStatus').textContent="";
+            console.log(`Backend returned ${results.length} consolidated findings`);
+
+            results.forEach(res=>{
+                const riskClass = res.risk_level.toLowerCase();
+                const card=document.createElement('div');
+                card.className=`risk-card ${riskClass}`;
+                
+                const affectedText = res.affected_pages && res.affected_pages.length > 0 
+                    ? `Pages: ${res.affected_pages.join(", ")}` 
+                    : "Multiple pages";
+                
+                card.innerHTML=`
+                    <div class="risk-level-badge ${riskClass}">${res.risk_level} Risk</div>
+                    <strong>NIST Control: ${res.control_id}</strong><br>
+                    <span style="color:#666; font-size:0.9em;">${res.control_summary}</span><br>
+                    <div class="affected-pages">📍 ${affectedText} (${res.num_occurrences} occurrence${res.num_occurrences > 1 ? 's' : ''})</div>
+                    <span class="original-snippet">"${res.example_quote || ''}"</span>
+                    <strong>Issue:</strong> ${res.consolidated_reason}<br>
+                    <strong>Fix:</strong> ${res.consolidated_recommendation}<br>
+                    <strong>Confidence:</strong> ${Number(res.confidence||0).toFixed(2)}<br>
+                    <button class="btn" style="margin-top:10px; font-size:0.85em; padding:6px 12px;" onclick="askAboutFinding('${res.control_id}', '${res.control_summary.replace(/'/g, "\\'")}')">
+                        🤖 Ask AI About This Finding
+                    </button>
+                `;
+                resultsDiv.appendChild(card);
+            });
+
+            document.getElementById('analyzeBtn').disabled=false;
+            analysisInProgress=false;
+            
+            // Auto-proceed to questionnaire after 3 seconds
+            setTimeout(() => {
+                if (confirm('PDF analysis complete! Ready to proceed to the questionnaire?')) {
+                    proceedToQuestionnaireMode();
+                }
+            }, 2000);
+        }
+
+        document.getElementById('analyzeBtn').addEventListener('click', runAnalysis);
+        
+        // Initialize flow indicator on page load
+        updateFlowIndicator(1);
+    </script>
+</body>
+</html>

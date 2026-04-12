@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIST CSF Compliance Assessment Templates</title>
+    <style>
+        :root {
+            /* Core Palette */
+            --color-white: #ffffff;
+            --color-light-gray: #fcfcfd;
+            --color-gray-100: #f4f4f9;
+            --color-gray-200: #ededf5;
+            --color-gray-300: #d1d1e0;
+            
+            /* New Purple Theme Colors */
+            --color-lavender-light: #9d8df1;
+            --color-deep-purple: #6200b3;
+            
+            /* Functional Mapping */
+            --color-text: #1a1a2e; /* Very dark blue-purple for readability */
+            --color-background: var(--color-white);
+            --color-surface: var(--color-white);
+            
+            --color-primary: var(--color-lavender-light);
+            --color-primary-hover: #8a7ae0; /* Slightly darker than 9d8df1 */
+            --color-primary-dark: var(--color-deep-purple);
+            
+            --color-border: #e0e0f0;
+            --color-focus-ring: rgba(157, 141, 241, 0.4);
+            
+            /* Status Colors */
+            --color-red-400: #ff5459;
+            --color-orange-500: var(--color-deep-purple); /* Using deep purple for category accents */
+        }
+
+        * { box-sizing: border-box; }
+        html { font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; color: var(--color-text); background-color: var(--color-background); }
+        body { margin: 0; padding: 0; }
+
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { font-size: 28px; font-weight: 600; margin: 0 0 8px 0; }
+        h2 { font-size: 20px; font-weight: 600; margin: 24px 0 12px 0; border-bottom: 2px solid var(--color-border); padding-bottom: 8px; color: var(--color-deep-purple); }
+        h3 { font-size: 16px; font-weight: 550; margin: 16px 0 8px 0; }
+        
+        /* Header with the new Gradient */
+        .header { 
+            background: linear-gradient(135deg, var(--color-deep-purple) 0%, var(--color-lavender-light) 100%); 
+            color: white; 
+            padding: 40px 20px; 
+            text-align: center; 
+            margin-bottom: 40px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(98, 0, 179, 0.15);
+        }
+        .header h1 { color: white; margin-bottom: 8px; }
+
+        .nav-tabs button.active { 
+            background: var(--color-deep-purple); 
+            color: white; 
+            border-color: var(--color-deep-purple); 
+        }
+
+        .doc-info { 
+            background: var(--color-gray-100); 
+            border-left: 4px solid var(--color-lavender-light); 
+        }
+
+        .section-category { 
+            background: var(--color-gray-200); 
+            border-left: 4px solid var(--color-deep-purple); 
+            color: var(--color-deep-purple);
+        }
+
+        .btn-primary { background: var(--color-deep-purple); color: white; }
+        .btn-primary:hover { background: #4a008a; } /* Darker shade of 6200b3 */
+        
+        /* Input focus overrides */
+        .question-input:focus, .question-textarea:focus, .question-select:focus { 
+            border-color: var(--color-lavender-light); 
+            box-shadow: var(--color-focus-ring) 0 0 0 3px; 
+        }
+
+        /* ========== Navigation Tabs ========== */
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--color-gray-100);
+            border-radius: 8px;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--color-border);
+            border-radius: 6px;
+            background: var(--color-white);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover {
+            border-color: var(--color-lavender-light);
+            background: var(--color-gray-100);
+        }
+
+        /* ========== Template Sections ========== */
+        .template-section {
+            display: none;
+        }
+        .template-section.active {
+            display: block;
+        }
+
+        /* ========== Document Info Block ========== */
+        .doc-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+        }
+        .doc-info label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--color-text);
+        }
+        .doc-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .doc-input:focus {
+            outline: none;
+            border-color: var(--color-lavender-light);
+            box-shadow: var(--color-focus-ring) 0 0 0 3px;
+        }
+
+        /* ========== Section Category Headers ========== */
+        .section-category {
+            padding: 12px 16px;
+            margin: 24px 0 16px 0;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* ========== Question Blocks ========== */
+        .question-block {
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.2s;
+        }
+        .question-block:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        /* ========== Question Labels ========== */
+        .question-label {
+            display: block;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--color-text);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .question-hint {
+            font-size: 13px;
+            color: #666;
+            margin: 0 0 12px 0;
+            padding-left: 0;
+        }
+
+        /* ========== Checkbox Groups (MCQ Options) ========== */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 12px 0 16px 0;
+            padding-left: 4px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--color-gray-100);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+        .checkbox-group label:hover {
+            background: var(--color-gray-200);
+            border-color: var(--color-lavender-light);
+        }
+        .checkbox-group input[type="checkbox"] {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            margin-top: 1px;
+            accent-color: var(--color-deep-purple);
+            cursor: pointer;
+        }
+
+        /* ========== Select Dropdowns ========== */
+        .question-select {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--color-white);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        .question-select:focus {
+            outline: none;
+            border-color: var(--color-lavender-light);
+            box-shadow: var(--color-focus-ring) 0 0 0 3px;
+        }
+        .question-select option {
+            padding: 10px;
+        }
+
+        /* ========== Textareas ========== */
+        .question-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .question-textarea:focus {
+            outline: none;
+            border-color: var(--color-lavender-light);
+            box-shadow: var(--color-focus-ring) 0 0 0 3px;
+        }
+
+        /* ========== Text Inputs ========== */
+        .question-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .question-input:focus {
+            outline: none;
+            border-color: var(--color-lavender-light);
+            box-shadow: var(--color-focus-ring) 0 0 0 3px;
+        }
+
+        /* ========== Form Groups ========== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-lavender-light);
+            box-shadow: var(--color-focus-ring) 0 0 0 3px;
+        }
+        .help-text {
+            font-size: 13px;
+            color: #666;
+            margin: 4px 0 10px 0;
+        }
+
+        /* ========== Compliance Gap Box ========== */
+        .compliance-gap {
+            background: #fff8e6;
+            border: 1px solid #ffd966;
+            border-left: 4px solid #ffc107;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 24px 0;
+            font-size: 14px;
+        }
+        .compliance-gap strong {
+            color: #b8860b;
+        }
+
+        /* ========== Success Banner ========== */
+        .success-banner {
+            display: none;
+            background: #e6f9e6;
+            border: 1px solid #4caf50;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+        .success-banner.show {
+            display: block;
+        }
+
+        /* ========== Button Group ========== */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+        }
+        .btn-primary,
+        .btn-secondary {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary {
+            background: var(--color-gray-200);
+            color: var(--color-text);
+        }
+        .btn-secondary:hover {
+            background: var(--color-gray-300);
+        }
+
+        /* ========== Section Block for Heatmap ========== */
+        .section-block {
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .section-block h2 {
+            margin-top: 0;
+        }
+
+        /* ========== Responsive Adjustments ========== */
+        @media (max-width: 768px) {
+            .nav-tabs {
+                justify-content: center;
+            }
+            .nav-btn {
+                flex: 1 1 calc(50% - 8px);
+                text-align: center;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            .doc-info {
+                grid-template-columns: 1fr;
+            }
+            .checkbox-group label {
+                padding: 8px 12px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 NIST CSF Compliance Assessment Templates</h1>
+        <p>Focused templates to assess your organization's compliance with specific NIST Cybersecurity Framework functions</p>
+    </div>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="nav-btn active" data-template="identify">📍 Identify</button>
+            <button class="nav-btn" data-template="protect">🛡️ Protect</button>
+            <button class="nav-btn" data-template="detect">👁️ Detect</button>
+            <button class="nav-btn" data-template="respond">⚡ Respond</button>
+            <button class="nav-btn" data-template="recover">🔄 Recover</button>
+        </div>
+    <!--Testtt-->
+<section id="heatmap-inputs" class="section-block">
+  <h2>Heat Map Inputs</h2>
+  <p>Provide the data for a likelihood vs. impact risk heat map.</p>
+
+  <div class="form-group">
+    <label><strong>E1. Risk Item Identifier</strong></label>
+    
+    <div style="margin-bottom: 15px;">
+      <label for="riskItemName">Document / System Name:</label>
+      <input type="text" id="riskItemName" name="riskItemName"
+             placeholder="e.g., Customer Onboarding AI Policy" />
+    </div>
+
+    <div>
+      <label for="riskItemDescription">Short Description (what it governs or controls):</label>
+      <textarea id="riskItemDescription" name="riskItemDescription" rows="2"
+        placeholder="Briefly describe what this document/system governs or controls."></textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="impactScore"><strong>E2. Impact Score (Magnitude of Harm)</strong></label>
+    <p class="help-text">
+      On a scale of <strong>1–5</strong> (1 = Minimal, 5 = Critical), rate:<br />
+      <em>If this system governed by this document fails or is misused, how severe are the
+      consequences to people, organization, society, environment, or planet?</em>
+    </p>
+    <input type="number" id="impactScore" name="impactScore" min="1" max="5" step="1" />
+  </div>
+
+  <div class="form-group">
+    <label for="likelihoodScore"><strong>E3. Likelihood Score (Probability of Occurrence)</strong></label>
+    <p class="help-text">
+      On a scale of <strong>1–5</strong> (1 = Very unlikely, 5 = Very likely), rate:<br />
+      <em>How likely is it that a harmful event (as defined in the impact question above) will
+      occur, given current controls and context?</em>
+    </p>
+    <input type="number" id="likelihoodScore" name="likelihoodScore" min="1" max="5" step="1" />
+  </div>
+
+  <p class="help-text">
+    These two scores (Impact and Likelihood) are sufficient to place this item on a classic N×N risk
+    heat map (X‑axis = Likelihood, Y‑axis = Impact).
+  </p>
+</section>
+    <!--Testtt-->
+        <!-- IDENTIFY TEMPLATE -->
+        <div id="identify" class="template-section active">
+            <h2>📍 IDENTIFY Function Assessment</h2>
+            <p style="color: var(--color-slate-500); margin-bottom: 20px;">Understand and manage cybersecurity risk to systems, assets, data, and capabilities.</p>
+
+            <div class="doc-info">
+                <label>Document/Policy Name</label>
+                <input type="text" placeholder="e.g., Data Classification Policy, Asset Management Procedure" class="doc-input">
+                <label>Department/Team</label>
+                <input type="text" placeholder="e.g., IT Security, Risk Management" class="doc-input">
+                <label>Date</label>
+                <input type="date" class="doc-input">
+            </div>
+
+            <div class="success-banner" id="identify-success">✓ Assessment saved. Ready to export to PDF.</div>
+
+            <div class="section-category">ID.AM – Asset Management</div>
+            <div class="question-block">
+                <label class="question-label">1. Do you maintain an up-to-date inventory of all hardware assets?</label>
+                <p class="question-hint">Include devices, systems, and equipment (on-premises and remote).</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="id-am-1"> Yes, comprehensive inventory maintained</label>
+                    <label><input type="checkbox" name="id-am-1"> Partial inventory exists</label>
+                    <label><input type="checkbox" name="id-am-1"> No formal inventory</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe your asset inventory process..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">2. Are software assets and applications documented?</label>
+                <p class="question-hint">Include versions, licenses, and criticality levels.</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="id-am-2"> Yes, documented and tracked</label>
+                    <label><input type="checkbox" name="id-am-2"> Partially documented</label>
+                    <label><input type="checkbox" name="id-am-2"> Not documented</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe your software inventory..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">3. Are assets prioritized based on criticality and impact on mission?</label>
+                <p class="question-hint">Business-critical, high-value, or sensitive assets should be ranked.</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="id-am-3"> Yes, formal prioritization process</label>
+                    <label><input type="checkbox" name="id-am-3"> Informal prioritization</label>
+                    <label><input type="checkbox" name="id-am-3"> No prioritization</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe prioritization methodology..."></textarea>
+            </div>
+
+            <div class="section-category">ID.RA – Risk Assessment</div>
+            <div class="question-block">
+                <label class="question-label">4. Does your organization conduct regular risk assessments?</label>
+                <p class="question-hint">How often? Annual, quarterly, continuous?</p>
+                <select class="question-select">
+                    <option value="">-- Select Frequency --</option>
+                    <option value="continuous">Continuous monitoring</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annual">Annual</option>
+                    <option value="adhoc">Ad-hoc only</option>
+                    <option value="none">No formal assessments</option>
+                </select>
+                <textarea class="question-textarea" placeholder="Describe your risk assessment process..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">5. Are vulnerabilities identified and documented?</label>
+                <p class="question-hint">Include severity levels and remediation timelines.</p>
+                <textarea class="question-textarea" placeholder="Describe how vulnerabilities are identified and tracked..."></textarea>
+            </div>
+
+            <div class="section-category">ID.GV – Governance (NIST CSF 2.0)</div>
+            <div class="question-block">
+                <label class="question-label">6. Are roles and responsibilities for cybersecurity clearly defined?</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="id-gv-1"> Yes, documented and communicated</label>
+                    <label><input type="checkbox" name="id-gv-1"> Partially defined</label>
+                    <label><input type="checkbox" name="id-gv-1"> Not defined</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe your governance structure..."></textarea>
+            </div>
+
+            <div class="compliance-gap">
+                <strong>Compliance Gap Guide:</strong> If you answered "Partial" or "No" for any question, this indicates a compliance gap that should be addressed through policy updates, process improvements, or resource allocation.
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="exportPDF('identify')">📥 Export as PDF</button>
+                <button class="btn-secondary" onclick="clearForm('identify')">🗑️ Clear Form</button>
+            </div>
+        </div>
+
+        <!-- PROTECT TEMPLATE -->
+        <div id="protect" class="template-section">
+            <h2>🛡️ PROTECT Function Assessment</h2>
+            <p style="color: var(--color-slate-500); margin-bottom: 20px;">Develop and implement safeguards to ensure delivery of critical services.</p>
+
+            <div class="doc-info">
+                <label>Document/Policy Name</label>
+                <input type="text" placeholder="e.g., Access Control Policy, Data Protection Procedure" class="doc-input">
+                <label>Department/Team</label>
+                <input type="text" placeholder="e.g., Information Security" class="doc-input">
+                <label>Date</label>
+                <input type="date" class="doc-input">
+            </div>
+
+            <div class="success-banner" id="protect-success">✓ Assessment saved. Ready to export to PDF.</div>
+
+            <div class="section-category">PR.AA – Identity Management & Access Control</div>
+            <div class="question-block">
+                <label class="question-label">1. Are access controls implemented based on least privilege principle?</label>
+                <p class="question-hint">Users should have only the minimum access needed for their role.</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="pr-aa-1"> Yes, enforced organization-wide</label>
+                    <label><input type="checkbox" name="pr-aa-1"> Partially implemented</label>
+                    <label><input type="checkbox" name="pr-aa-1"> Not implemented</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe your access control strategy..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">2. Is multi-factor authentication (MFA) implemented for critical systems?</label>
+                <select class="question-select">
+                    <option value="">-- Select Coverage --</option>
+                    <option value="all">All systems</option>
+                    <option value="critical">Critical systems only</option>
+                    <option value="some">Some systems</option>
+                    <option value="none">Not implemented</option>
+                </select>
+                <textarea class="question-textarea" placeholder="Describe MFA implementation..."></textarea>
+            </div>
+
+            <div class="section-category">PR.AT – Awareness & Training</div>
+            <div class="question-block">
+                <label class="question-label">3. Does the organization provide security awareness training?</label>
+                <p class="question-hint">Annual or more frequent training for all staff.</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="pr-at-1"> Yes, annual training for all</label>
+                    <label><input type="checkbox" name="pr-at-1"> More than annual</label>
+                    <label><input type="checkbox" name="pr-at-1"> Ad-hoc training</label>
+                    <label><input type="checkbox" name="pr-at-1"> No formal training</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe training program..."></textarea>
+            </div>
+
+            <div class="section-category">PR.DS – Data Security</div>
+            <div class="question-block">
+                <label class="question-label">4. Is sensitive data encrypted at rest and in transit?</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="pr-ds-1"> Yes, all sensitive data encrypted</label>
+                    <label><input type="checkbox" name="pr-ds-1"> Most data encrypted</label>
+                    <label><input type="checkbox" name="pr-ds-1"> Some data encrypted</label>
+                    <label><input type="checkbox" name="pr-ds-1"> Not encrypted</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe encryption approach..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">5. Are data retention and disposal policies documented?</label>
+                <textarea class="question-textarea" placeholder="Describe data lifecycle management..."></textarea>
+            </div>
+
+            <div class="section-category">PR.PS – Platform Security</div>
+            <div class="question-block">
+                <label class="question-label">6. Is regular patching and vulnerability remediation performed?</label>
+                <p class="question-hint">Include SLAs for patch deployment.</p>
+                <textarea class="question-textarea" placeholder="Describe patch management process..."></textarea>
+            </div>
+
+            <div class="compliance-gap">
+                <strong>Compliance Gap Guide:</strong> Gaps in Protect controls indicate vulnerabilities in your security posture. Prioritize implementation of missing controls.
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="exportPDF('protect')">📥 Export as PDF</button>
+                <button class="btn-secondary" onclick="clearForm('protect')">🗑️ Clear Form</button>
+            </div>
+        </div>
+
+        <!-- DETECT TEMPLATE -->
+        <div id="detect" class="template-section">
+            <h2>👁️ DETECT Function Assessment</h2>
+            <p style="color: var(--color-slate-500); margin-bottom: 20px;">Develop activities to identify cybersecurity events and anomalies.</p>
+
+            <div class="doc-info">
+                <label>Document/Policy Name</label>
+                <input type="text" placeholder="e.g., Security Monitoring Procedure, Incident Detection Policy" class="doc-input">
+                <label>Department/Team</label>
+                <input type="text" placeholder="e.g., SOC, Network Security" class="doc-input">
+                <label>Date</label>
+                <input type="date" class="doc-input">
+            </div>
+
+            <div class="success-banner" id="detect-success">✓ Assessment saved. Ready to export to PDF.</div>
+
+            <div class="section-category">DE.CM – Continuous Monitoring</div>
+            <div class="question-block">
+                <label class="question-label">1. Are systems monitored continuously for anomalies and threats?</label>
+                <p class="question-hint">SIEM, intrusion detection, log monitoring, etc.</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="de-cm-1"> Yes, 24/7 monitoring in place</label>
+                    <label><input type="checkbox" name="de-cm-1"> Business hours monitoring</label>
+                    <label><input type="checkbox" name="de-cm-1"> Periodic monitoring</label>
+                    <label><input type="checkbox" name="de-cm-1"> Not monitoring</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe your monitoring infrastructure..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">2. Are logs centralized and retained for forensic analysis?</label>
+                <p class="question-hint">How long are logs retained? Where are they stored?</p>
+                <textarea class="question-textarea" placeholder="Describe log management..."></textarea>
+            </div>
+
+            <div class="section-category">DE.AE – Adverse Event Analysis</div>
+            <div class="question-block">
+                <label class="question-label">3. Are detected anomalies analyzed and categorized?</label>
+                <p class="question-hint">False positive ratio, response time, categorization method.</p>
+                <textarea class="question-textarea" placeholder="Describe anomaly analysis process..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">4. Are alerting thresholds and detection rules documented?</label>
+                <textarea class="question-textarea" placeholder="Describe your detection rules..."></textarea>
+            </div>
+
+            <div class="compliance-gap">
+                <strong>Compliance Gap Guide:</strong> Detection gaps mean you lack visibility into security events. Prioritize implementing monitoring for high-risk systems first.
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="exportPDF('detect')">📥 Export as PDF</button>
+                <button class="btn-secondary" onclick="clearForm('detect')">🗑️ Clear Form</button>
+            </div>
+        </div>
+
+        <!-- RESPOND TEMPLATE -->
+        <div id="respond" class="template-section">
+            <h2>⚡ RESPOND Function Assessment</h2>
+            <p style="color: var(--color-slate-500); margin-bottom: 20px;">Take action regarding detected cybersecurity incidents.</p>
+
+            <div class="doc-info">
+                <label>Document/Policy Name</label>
+                <input type="text" placeholder="e.g., Incident Response Plan, IR Playbook" class="doc-input">
+                <label>Department/Team</label>
+                <input type="text" placeholder="e.g., Incident Response Team, Security Operations" class="doc-input">
+                <label>Date</label>
+                <input type="date" class="doc-input">
+            </div>
+
+            <div class="success-banner" id="respond-success">✓ Assessment saved. Ready to export to PDF.</div>
+
+            <div class="section-category">RS.MA – Incident Management</div>
+            <div class="question-block">
+                <label class="question-label">1. Is there a documented incident response plan?</label>
+                <p class="question-hint">Updated and tested regularly?</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="rs-ma-1"> Yes, documented and tested</label>
+                    <label><input type="checkbox" name="rs-ma-1"> Documented but not tested</label>
+                    <label><input type="checkbox" name="rs-ma-1"> Partially documented</label>
+                    <label><input type="checkbox" name="rs-ma-1"> No plan</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe your IR plan..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">2. Is there a designated incident response team with clear roles?</label>
+                <textarea class="question-textarea" placeholder="Describe team structure and responsibilities..."></textarea>
+            </div>
+
+            <div class="section-category">RS.AN – Incident Analysis</div>
+            <div class="question-block">
+                <label class="question-label">3. Are incidents investigated and root causes documented?</label>
+                <p class="question-hint">Forensic procedures, evidence collection, timeline analysis.</p>
+                <textarea class="question-textarea" placeholder="Describe forensic capabilities..."></textarea>
+            </div>
+
+            <div class="section-category">RS.CO – Communications</div>
+            <div class="question-block">
+                <label class="question-label">4. Is there a communication plan for incident stakeholders?</label>
+                <p class="question-hint">Internal escalation, customer notification, regulatory reporting.</p>
+                <textarea class="question-textarea" placeholder="Describe communication procedures..."></textarea>
+            </div>
+
+            <div class="section-category">RS.MI – Mitigation</div>
+            <div class="question-block">
+                <label class="question-label">5. Are incident containment and eradication procedures documented?</label>
+                <textarea class="question-textarea" placeholder="Describe containment and remediation procedures..."></textarea>
+            </div>
+
+            <div class="compliance-gap">
+                <strong>Compliance Gap Guide:</strong> Response gaps mean slower incident containment and potentially greater impact. Ensure plan covers all incident types relevant to your organization.
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="exportPDF('respond')">📥 Export as PDF</button>
+                <button class="btn-secondary" onclick="clearForm('respond')">🗑️ Clear Form</button>
+            </div>
+        </div>
+
+        <!-- RECOVER TEMPLATE -->
+        <div id="recover" class="template-section">
+            <h2>🔄 RECOVER Function Assessment</h2>
+            <p style="color: var(--color-slate-500); margin-bottom: 20px;">Maintain plans for resilience and restore capabilities after incidents.</p>
+
+            <div class="doc-info">
+                <label>Document/Policy Name</label>
+                <input type="text" placeholder="e.g., Business Continuity Plan, Disaster Recovery Plan" class="doc-input">
+                <label>Department/Team</label>
+                <input type="text" placeholder="e.g., Business Continuity, Infrastructure" class="doc-input">
+                <label>Date</label>
+                <input type="date" class="doc-input">
+            </div>
+
+            <div class="success-banner" id="recover-success">✓ Assessment saved. Ready to export to PDF.</div>
+
+            <div class="section-category">RC.RP – Recovery Planning</div>
+            <div class="question-block">
+                <label class="question-label">1. Is there a documented disaster recovery / business continuity plan?</label>
+                <p class="question-hint">RPO and RTO defined for critical systems?</p>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="rc-rp-1"> Yes, with RPO/RTO defined</label>
+                    <label><input type="checkbox" name="rc-rp-1"> Yes, but incomplete</label>
+                    <label><input type="checkbox" name="rc-rp-1"> Partially documented</label>
+                    <label><input type="checkbox" name="rc-rp-1"> Not documented</label>
+                </div>
+                <textarea class="question-textarea" placeholder="Describe your recovery strategy..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">2. Are recovery procedures tested and validated?</label>
+                <p class="question-hint">How often? When was last test? Results documented?</p>
+                <textarea class="question-textarea" placeholder="Describe testing and validation process..."></textarea>
+            </div>
+
+            <div class="question-block">
+                <label class="question-label">3. Are backups regularly performed and tested?</label>
+                <p class="question-hint">Frequency, retention, offsite storage, encryption.</p>
+                <textarea class="question-textarea" placeholder="Describe backup procedures..."></textarea>
+            </div>
+
+            <div class="section-category">RC.CO – Communications</div>
+            <div class="question-block">
+                <label class="question-label">4. Is there a recovery communication and notification plan?</label>
+                <p class="question-hint">Who to notify? Timeline? Status updates?</p>
+                <textarea class="question-textarea" placeholder="Describe recovery communication plan..."></textarea>
+            </div>
+
+            <div class="section-category">RC.IM – Improvements</div>
+            <div class="question-block">
+                <label class="question-label">5. Are lessons learned from incidents incorporated into recovery plans?</label>
+                <textarea class="question-textarea" placeholder="Describe how improvements are tracked and implemented..."></textarea>
+            </div>
+
+            <div class="compliance-gap">
+                <strong>Compliance Gap Guide:</strong> Recovery gaps indicate you may not be able to restore operations quickly after an incident. Test your plans regularly and update based on lessons learned.
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="exportPDF('recover')">📥 Export as PDF</button>
+                <button class="btn-secondary" onclick="clearForm('recover')">🗑️ Clear Form</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.template-section').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                const template = this.getAttribute('data-template');
+                document.getElementById(template).classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Export to PDF
+        function exportPDF(template) {
+            const section = document.getElementById(template);
+            const content = section.innerHTML;
+            
+            // Simple PDF generation using basic print/download approach
+            const printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>NIST CSF ${template.toUpperCase()} Assessment</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                        h2 { border-bottom: 2px solid #208096; padding-bottom: 10px; }
+                        .question-block { margin-bottom: 20px; }
+                        label { font-weight: bold; }
+                        input, textarea, select { border: none; background: #f5f5f5; padding: 5px; width: 100%; }
+                    </style>
+                </head>
+                <body onload="window.print()">
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        // Clear form
+        function clearForm(template) {
+            const section = document.getElementById(template);
+            section.querySelectorAll('input, textarea, select').forEach(el => {
+                if (el.type === 'checkbox') el.checked = false;
+                else el.value = '';
+            });
+            document.getElementById(template + '-success').classList.remove('show');
+        }
+
+        // Show success banner on any input
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('change', function() {
+                const template = this.closest('.template-section').id;
+                const banner = document.getElementById(template + '-success');
+                if (banner) banner.classList.add('show');
+            });
+        });
+    </script>
+</body>
+</html>

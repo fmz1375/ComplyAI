@@ -1,0 +1,1267 @@
+<!-- Mini Chat Widget - Floating button with expandable chat panel -->
+<style>
+/* ============================================
+   MINI CHAT WIDGET STYLES
+   ============================================ */
+
+/* Toggle Button */
+#mini-chat-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 9999;
+}
+
+#mini-chat-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.5);
+}
+
+#mini-chat-toggle svg {
+  width: 24px;
+  height: 24px;
+  stroke: white;
+}
+
+#mini-chat-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: #EF4444;
+  color: white;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#mini-chat-badge.visible {
+  display: flex;
+}
+
+/* Chat Panel */
+#mini-chat-panel {
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  width: 380px;
+  height: 520px;
+  background: #F9FAFB;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9998;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#mini-chat-panel.visible {
+  display: flex;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Header */
+.mini-chat-header {
+  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mini-chat-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-chat-header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.mini-chat-header-subtitle {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-online-dot {
+  width: 8px;
+  height: 8px;
+  background: #34D399;
+  border-radius: 50%;
+}
+
+.mini-header-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.mini-header-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.mini-header-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: white;
+}
+
+/* Conversations List */
+#mini-conversations-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#mini-conversations-view.hidden {
+  display: none;
+}
+
+.mini-search-bar {
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.mini-search-bar input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.mini-search-bar input:focus {
+  border-color: #7C3AED;
+}
+
+.mini-conversations-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.mini-conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mini-conversation-item:hover {
+  background: #F3F4F6;
+}
+
+.mini-user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.mini-user-avatar .online-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: #34D399;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.mini-conversation-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-conversation-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1F2937;
+  margin-bottom: 2px;
+}
+
+.mini-conversation-preview {
+  font-size: 13px;
+  color: #6B7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-conversation-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.mini-conversation-time {
+  font-size: 11px;
+  color: #9CA3AF;
+}
+
+.mini-unread-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: #7C3AED;
+  color: white;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Chat View */
+#mini-chat-view {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+}
+
+#mini-chat-view.active {
+  display: flex;
+}
+
+.mini-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #F9FAFB;
+}
+
+.mini-message {
+  display: flex;
+  gap: 8px;
+  max-width: 85%;
+}
+
+.mini-message.own {
+  flex-direction: row-reverse;
+  align-self: flex-end;
+}
+
+.mini-message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  flex-shrink: 0;
+}
+
+.mini-message.own .mini-message-avatar {
+  background: #6D28D9;
+  color: white;
+}
+
+.mini-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mini-message-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  background: white;
+  color: #1F2937;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.mini-message.own .mini-message-bubble {
+  background: #6D28D9;
+  color: white;
+}
+
+.mini-message-time {
+  font-size: 11px;
+  color: #9CA3AF;
+  padding: 0 4px;
+}
+
+.mini-message.own .mini-message-time {
+  text-align: right;
+}
+
+/* Input Area */
+.mini-input-area {
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.mini-input-area textarea {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 20px;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  max-height: 100px;
+  min-height: 40px;
+  line-height: 1.4;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.mini-input-area textarea:focus {
+  border-color: #7C3AED;
+}
+
+.mini-send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #6D28D9;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.mini-send-btn:hover {
+  background: #5B21B6;
+}
+
+.mini-send-btn:active {
+  transform: scale(0.95);
+}
+
+.mini-send-btn:disabled {
+  background: #D1D5DB;
+  cursor: not-allowed;
+}
+
+.mini-send-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+
+/* Empty State */
+.mini-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  color: #6B7280;
+}
+
+.mini-empty-state svg {
+  width: 64px;
+  height: 64px;
+  stroke: #D1D5DB;
+  margin-bottom: 16px;
+}
+
+.mini-empty-state h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.mini-empty-state p {
+  font-size: 14px;
+}
+
+/* Back Button */
+.mini-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mini-back-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.mini-back-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: white;
+}
+
+/* Typing Indicator */
+.mini-typing-indicator {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #6B7280;
+}
+
+.mini-typing-indicator.visible {
+  display: flex;
+}
+
+.mini-typing-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.mini-typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9CA3AF;
+  animation: miniTypingBounce 1.4s infinite ease-in-out both;
+}
+
+.mini-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.mini-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes miniTypingBounce {
+  0%, 80%, 100% { transform: scale(0.6); }
+  40% { transform: scale(1); }
+}
+
+/* New Chat Button */
+.mini-new-chat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 16px 16px;
+  padding: 12px;
+  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.mini-new-chat-btn:hover {
+  opacity: 0.9;
+}
+
+.mini-new-chat-btn:active {
+  transform: scale(0.98);
+}
+
+/* Users List Modal */
+#mini-users-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  display: none;
+  flex-direction: column;
+  z-index: 10;
+  border-radius: 16px;
+}
+
+#mini-users-modal.visible {
+  display: flex;
+}
+
+.mini-users-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.mini-user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mini-user-item:hover {
+  background: #F3F4F6;
+}
+
+.mini-user-item-info {
+  flex: 1;
+}
+
+.mini-user-item-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1F2937;
+}
+
+.mini-user-item-email {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  #mini-chat-panel {
+    right: 8px;
+    left: 8px;
+    bottom: 80px;
+    width: auto;
+    height: 70vh;
+    max-height: 500px;
+  }
+}
+</style>
+
+<!-- Chat Toggle Button -->
+<button id="mini-chat-toggle" onclick="toggleMiniChat()" title="Messages">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+  <span id="mini-chat-badge"></span>
+</button>
+
+<!-- Chat Panel -->
+<div id="mini-chat-panel">
+  <!-- Conversations List View -->
+  <div id="mini-conversations-view">
+    <!-- Header -->
+    <div class="mini-chat-header">
+      <div class="mini-chat-header-info">
+        <div class="mini-chat-header-title">Messages</div>
+        <div class="mini-chat-header-subtitle">
+          <span class="mini-online-dot"></span>
+          <span id="mini-online-count">0 online</span>
+        </div>
+      </div>
+      <div class="mini-chat-header-actions">
+        <button class="mini-header-btn" onclick="toggleMiniChat()" title="Close">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="mini-search-bar">
+      <input type="text" id="mini-search-input" placeholder="Search conversations..." oninput="filterMiniConversations(this.value)">
+    </div>
+
+    <!-- Conversations List -->
+    <div class="mini-conversations-list" id="mini-conversations-list">
+      <!-- Populated by JavaScript -->
+    </div>
+
+    <!-- New Chat Button -->
+    <button class="mini-new-chat-btn" onclick="showMiniUsersModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      New Message
+    </button>
+  </div>
+
+  <!-- Chat View -->
+  <div id="mini-chat-view">
+    <!-- Header -->
+    <div class="mini-chat-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="mini-back-btn" onclick="showMiniConversationsList()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div class="mini-chat-header-info">
+          <div class="mini-chat-header-title" id="mini-chat-recipient-name">User</div>
+          <div class="mini-chat-header-subtitle" id="mini-chat-recipient-status">
+            <span class="mini-online-dot"></span>
+            Online
+          </div>
+        </div>
+      </div>
+      <div class="mini-chat-header-actions">
+        <button class="mini-header-btn" onclick="toggleMiniChat()" title="Close">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="mini-messages-container" id="mini-messages-container">
+      <!-- Populated by JavaScript -->
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="mini-typing-indicator" id="mini-typing-indicator">
+      <div class="mini-typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span id="mini-typing-text">typing...</span>
+    </div>
+
+    <!-- Input -->
+    <div class="mini-input-area">
+      <textarea id="mini-message-input" placeholder="Type a message..." rows="1" 
+                onkeydown="handleMiniInputKeydown(event)" 
+                oninput="autoResizeMiniInput(this); emitMiniTyping()"></textarea>
+      <button class="mini-send-btn" id="mini-send-btn" onclick="sendMiniMessage()" disabled>
+        <svg viewBox="0 0 24 24">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Users Modal -->
+  <div id="mini-users-modal">
+    <div class="mini-chat-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="mini-back-btn" onclick="hideMiniUsersModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div class="mini-chat-header-info">
+          <div class="mini-chat-header-title">New Message</div>
+          <div class="mini-chat-header-subtitle">Select a user to start chatting</div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-search-bar">
+      <input type="text" id="mini-users-search" placeholder="Search users..." oninput="filterMiniUsers(this.value)">
+    </div>
+    <div class="mini-users-list" id="mini-users-list">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+// ============================================
+// MINI CHAT WIDGET - JavaScript
+// ============================================
+
+// Configuration (passed from Flask template)
+const miniChatConfig = {
+  userId: {{ user_id | default(0) }},
+  userName: {{ full_name | default("User") | tojson }},
+  apiBaseUrl: ''
+};
+
+// State
+let miniSocket = null;
+let miniIsConnected = false;
+let miniChatOpen = false;
+let miniConversations = [];
+let miniMessages = [];
+let miniUsers = [];
+let miniCurrentRecipient = null;
+let miniUnreadTotal = 0;
+let miniTypingTimeout = null;
+let miniOnlineUsers = new Set();
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (miniChatConfig.userId) {
+    initMiniSocket();
+    loadMiniConversations();
+  }
+});
+
+function initMiniSocket() {
+  if (miniSocket) return;
+  
+  miniSocket = io({
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 10
+  });
+
+  miniSocket.on('connect', () => {
+    miniIsConnected = true;
+    miniSocket.emit('dm_connect', {
+      user_id: miniChatConfig.userId,
+      user_name: miniChatConfig.userName
+    });
+  });
+
+  miniSocket.on('disconnect', () => {
+    miniIsConnected = false;
+  });
+
+  miniSocket.on('dm_connected', (data) => {
+    miniOnlineUsers = new Set(data.online_users || []);
+    updateMiniOnlineCount();
+  });
+
+  miniSocket.on('dm_user_online', (data) => {
+    miniOnlineUsers.add(data.user_id);
+    updateMiniOnlineCount();
+    updateMiniConversationOnlineStatus(data.user_id, true);
+  });
+
+  miniSocket.on('dm_user_offline', (data) => {
+    miniOnlineUsers.delete(data.user_id);
+    updateMiniOnlineCount();
+    updateMiniConversationOnlineStatus(data.user_id, false);
+  });
+
+  miniSocket.on('dm_new_message', (data) => {
+    handleIncomingMiniMessage(data);
+  });
+
+  miniSocket.on('dm_typing', (data) => {
+    if (data.sender_id === miniCurrentRecipient?.user_id) {
+      showMiniTypingIndicator(data.sender_name);
+    }
+  });
+
+  miniSocket.on('dm_stop_typing', (data) => {
+    if (data.sender_id === miniCurrentRecipient?.user_id) {
+      hideMiniTypingIndicator();
+    }
+  });
+}
+
+// ============================================
+// UI FUNCTIONS
+// ============================================
+
+function toggleMiniChat() {
+  miniChatOpen = !miniChatOpen;
+  const panel = document.getElementById('mini-chat-panel');
+  
+  if (miniChatOpen) {
+    panel.classList.add('visible');
+    loadMiniConversations();
+  } else {
+    panel.classList.remove('visible');
+  }
+}
+
+function showMiniConversationsList() {
+  document.getElementById('mini-conversations-view').classList.remove('hidden');
+  document.getElementById('mini-chat-view').classList.remove('active');
+  miniCurrentRecipient = null;
+  loadMiniConversations();
+}
+
+function showMiniUsersModal() {
+  document.getElementById('mini-users-modal').classList.add('visible');
+  loadMiniUsers();
+}
+
+function hideMiniUsersModal() {
+  document.getElementById('mini-users-modal').classList.remove('visible');
+}
+
+function updateMiniOnlineCount() {
+  const count = miniOnlineUsers.size;
+  document.getElementById('mini-online-count').textContent = `${count} online`;
+}
+
+function updateMiniUnreadBadge() {
+  const badge = document.getElementById('mini-chat-badge');
+  if (miniUnreadTotal > 0) {
+    badge.textContent = miniUnreadTotal > 99 ? '99+' : miniUnreadTotal;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+function updateMiniConversationOnlineStatus(userId, isOnline) {
+  const item = document.querySelector(`.mini-conversation-item[data-user-id="${userId}"]`);
+  if (item) {
+    const indicator = item.querySelector('.online-indicator');
+    if (indicator) {
+      indicator.style.display = isOnline ? 'block' : 'none';
+    }
+  }
+}
+
+// ============================================
+// DATA LOADING
+// ============================================
+
+async function loadMiniConversations() {
+  try {
+    const res = await fetch(`${miniChatConfig.apiBaseUrl}/api/dm/conversations`);
+    if (!res.ok) throw new Error('Failed to load conversations');
+    const data = await res.json();
+    miniConversations = data.conversations || [];
+    miniUnreadTotal = data.total_unread || 0;
+    updateMiniUnreadBadge();
+    renderMiniConversations();
+  } catch (err) {
+    console.error('Error loading conversations:', err);
+    renderMiniEmptyState();
+  }
+}
+
+async function loadMiniUsers() {
+  try {
+    const res = await fetch(`${miniChatConfig.apiBaseUrl}/api/dm/users`);
+    if (!res.ok) throw new Error('Failed to load users');
+    const data = await res.json();
+    miniUsers = data.users || [];
+    renderMiniUsersList();
+  } catch (err) {
+    console.error('Error loading users:', err);
+  }
+}
+
+async function loadMiniMessages(recipientId) {
+  try {
+    const res = await fetch(`${miniChatConfig.apiBaseUrl}/api/dm/messages/${recipientId}`);
+    if (!res.ok) throw new Error('Failed to load messages');
+    const data = await res.json();
+    miniMessages = data.messages || [];
+    renderMiniMessages();
+    scrollMiniToBottom();
+    
+    if (miniMessages.length > 0) {
+      markMiniMessagesAsRead(recipientId);
+    }
+  } catch (err) {
+    console.error('Error loading messages:', err);
+  }
+}
+
+async function markMiniMessagesAsRead(recipientId) {
+  try {
+    await fetch(`${miniChatConfig.apiBaseUrl}/api/dm/messages/${recipientId}/read`, {
+      method: 'POST'
+    });
+    const conv = miniConversations.find(c => c.user_id === recipientId);
+    if (conv && conv.unread_count > 0) {
+      miniUnreadTotal -= conv.unread_count;
+      conv.unread_count = 0;
+      updateMiniUnreadBadge();
+    }
+  } catch (err) {
+    console.error('Error marking messages as read:', err);
+  }
+}
+
+// ============================================
+// RENDERING
+// ============================================
+
+function renderMiniConversations() {
+  const container = document.getElementById('mini-conversations-list');
+  
+  if (miniConversations.length === 0) {
+    container.innerHTML = `
+      <div class="mini-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <h3>No conversations yet</h3>
+        <p>Start a new message to begin chatting</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = miniConversations.map(conv => {
+    const isOnline = miniOnlineUsers.has(conv.user_id);
+    const initials = getMiniInitials(conv.user_name);
+    const timeStr = formatMiniTime(conv.last_message_at);
+    
+    return `
+      <div class="mini-conversation-item" data-user-id="${conv.user_id}" onclick="openMiniConversation(${conv.user_id}, '${escapeMiniHtml(conv.user_name)}')">
+        <div class="mini-user-avatar">
+          ${initials}
+          ${isOnline ? '<span class="online-indicator"></span>' : ''}
+        </div>
+        <div class="mini-conversation-info">
+          <div class="mini-conversation-name">${escapeMiniHtml(conv.user_name)}</div>
+          <div class="mini-conversation-preview">${escapeMiniHtml(conv.last_message || 'No messages yet')}</div>
+        </div>
+        <div class="mini-conversation-meta">
+          <span class="mini-conversation-time">${timeStr}</span>
+          ${conv.unread_count > 0 ? `<span class="mini-unread-badge">${conv.unread_count}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMiniUsersList() {
+  const container = document.getElementById('mini-users-list');
+  const otherUsers = miniUsers.filter(u => u.id !== miniChatConfig.userId);
+  
+  if (otherUsers.length === 0) {
+    container.innerHTML = `
+      <div class="mini-empty-state">
+        <h3>No users found</h3>
+        <p>There are no other users to chat with</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = otherUsers.map(user => {
+    const isOnline = miniOnlineUsers.has(user.id);
+    const initials = getMiniInitials(user.full_name);
+    
+    return `
+      <div class="mini-user-item" onclick="startMiniNewConversation(${user.id}, '${escapeMiniHtml(user.full_name)}')">
+        <div class="mini-user-avatar">
+          ${initials}
+          ${isOnline ? '<span class="online-indicator"></span>' : ''}
+        </div>
+        <div class="mini-user-item-info">
+          <div class="mini-user-item-name">${escapeMiniHtml(user.full_name)}</div>
+          <div class="mini-user-item-email">${escapeMiniHtml(user.email || '')}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMiniMessages() {
+  const container = document.getElementById('mini-messages-container');
+  
+  if (miniMessages.length === 0) {
+    container.innerHTML = `
+      <div class="mini-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+          <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        <h3>Start the conversation</h3>
+        <p>Send a message to begin</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = miniMessages.map(msg => {
+    const isOwn = msg.sender_id === miniChatConfig.userId;
+    const initials = getMiniInitials(msg.sender_name);
+    const timeStr = formatMiniTime(msg.created_at);
+    
+    return `
+      <div class="mini-message ${isOwn ? 'own' : ''}">
+        <div class="mini-message-avatar">${initials}</div>
+        <div class="mini-message-content">
+          <div class="mini-message-bubble">${escapeMiniHtml(msg.content)}</div>
+          <div class="mini-message-time">${timeStr}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMiniEmptyState() {
+  const container = document.getElementById('mini-conversations-list');
+  container.innerHTML = `
+    <div class="mini-empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <h3>No conversations yet</h3>
+      <p>Start a new message to begin chatting</p>
+    </div>
+  `;
+}
+
+// ============================================
+// CHAT ACTIONS
+// ============================================
+
+function openMiniConversation(userId, userName) {
+  miniCurrentRecipient = { user_id: userId, user_name: userName };
+  
+  document.getElementById('mini-chat-recipient-name').textContent = userName;
+  const isOnline = miniOnlineUsers.has(userId);
+  document.getElementById('mini-chat-recipient-status').innerHTML = isOnline 
+    ? '<span class="mini-online-dot"></span> Online' 
+    : 'Offline';
+  
+  document.getElementById('mini-conversations-view').classList.add('hidden');
+  document.getElementById('mini-chat-view').classList.add('active');
+  
+  loadMiniMessages(userId);
+  document.getElementById('mini-message-input').focus();
+}
+
+function startMiniNewConversation(userId, userName) {
+  hideMiniUsersModal();
+  openMiniConversation(userId, userName);
+}
+
+async function sendMiniMessage() {
+  const input = document.getElementById('mini-message-input');
+  const content = input.value.trim();
+  
+  if (!content || !miniCurrentRecipient) return;
+  
+  input.value = '';
+  autoResizeMiniInput(input);
+  document.getElementById('mini-send-btn').disabled = true;
+  
+  const tempMsg = {
+    message_id: 'temp_' + Date.now(),
+    sender_id: miniChatConfig.userId,
+    sender_name: miniChatConfig.userName,
+    recipient_id: miniCurrentRecipient.user_id,
+    content: content,
+    created_at: new Date().toISOString()
+  };
+  miniMessages.push(tempMsg);
+  renderMiniMessages();
+  scrollMiniToBottom();
+  
+  if (miniSocket && miniIsConnected) {
+    miniSocket.emit('dm_send_message', {
+      sender_id: miniChatConfig.userId,
+      sender_name: miniChatConfig.userName,
+      recipient_id: miniCurrentRecipient.user_id,
+      content: content
+    });
+  } else {
+    try {
+      await fetch(`${miniChatConfig.apiBaseUrl}/api/dm/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_id: miniCurrentRecipient.user_id,
+          content: content
+        })
+      });
+    } catch (err) {
+      console.error('Error saving message:', err);
+    }
+  }
+}
+
+function handleIncomingMiniMessage(data) {
+  if (miniCurrentRecipient && data.sender_id === miniCurrentRecipient.user_id) {
+    miniMessages.push(data);
+    renderMiniMessages();
+    scrollMiniToBottom();
+    markMiniMessagesAsRead(data.sender_id);
+  } else {
+    miniUnreadTotal++;
+    updateMiniUnreadBadge();
+    
+    const conv = miniConversations.find(c => c.user_id === data.sender_id);
+    if (conv) {
+      conv.last_message = data.content;
+      conv.last_message_at = data.created_at;
+      conv.unread_count = (conv.unread_count || 0) + 1;
+    } else {
+      miniConversations.unshift({
+        user_id: data.sender_id,
+        user_name: data.sender_name,
+        last_message: data.content,
+        last_message_at: data.created_at,
+        unread_count: 1
+      });
+    }
+    
+    if (miniChatOpen && !miniCurrentRecipient) {
+      renderMiniConversations();
+    }
+  }
+}
+
+// ============================================
+// TYPING INDICATOR
+// ============================================
+
+function emitMiniTyping() {
+  const input = document.getElementById('mini-message-input');
+  const sendBtn = document.getElementById('mini-send-btn');
+  
+  sendBtn.disabled = !input.value.trim();
+  
+  if (!miniCurrentRecipient || !miniSocket || !miniIsConnected) return;
+  
+  miniSocket.emit('dm_typing', {
+    sender_id: miniChatConfig.userId,
+    sender_name: miniChatConfig.userName,
+    recipient_id: miniCurrentRecipient.user_id
+  });
+  
+  clearTimeout(miniTypingTimeout);
+  miniTypingTimeout = setTimeout(() => {
+    miniSocket.emit('dm_stop_typing', {
+      sender_id: miniChatConfig.userId,
+      recipient_id: miniCurrentRecipient.user_id
+    });
+  }, 2000);
+}
+
+function showMiniTypingIndicator(name) {
+  const indicator = document.getElementById('mini-typing-indicator');
+  document.getElementById('mini-typing-text').textContent = `${name} is typing...`;
+  indicator.classList.add('visible');
+}
+
+function hideMiniTypingIndicator() {
+  document.getElementById('mini-typing-indicator').classList.remove('visible');
+}
+
+// ============================================
+// SEARCH / FILTER
+// ============================================
+
+function filterMiniConversations(query) {
+  const items = document.querySelectorAll('.mini-conversation-item');
+  const q = query.toLowerCase();
+  
+  items.forEach(item => {
+    const name = item.querySelector('.mini-conversation-name').textContent.toLowerCase();
+    item.style.display = name.includes(q) ? 'flex' : 'none';
+  });
+}
+
+function filterMiniUsers(query) {
+  const items = document.querySelectorAll('.mini-user-item');
+  const q = query.toLowerCase();
+  
+  items.forEach(item => {
+    const name = item.querySelector('.mini-user-item-name').textContent.toLowerCase();
+    const email = item.querySelector('.mini-user-item-email').textContent.toLowerCase();
+    item.style.display = (name.includes(q) || email.includes(q)) ? 'flex' : 'none';
+  });
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+function handleMiniInputKeydown(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendMiniMessage();
+  }
+}
+
+function autoResizeMiniInput(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+}
+
+function scrollMiniToBottom() {
+  const container = document.getElementById('mini-messages-container');
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 50);
+}
+
+function getMiniInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function formatMiniTime(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return date.toLocaleDateString([], { weekday: 'short' });
+  } else {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+}
+
+function escapeMiniHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+</script>

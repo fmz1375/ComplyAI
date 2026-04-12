@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplyAI - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    .sidebar {
+      transition: width 0.3s ease;
+    }
+    .sidebar.collapsed {
+      width: 5rem;
+    }
+    .sidebar.collapsed .nav-text,
+    .sidebar.collapsed .settings-header,
+    .sidebar.collapsed #logo-container > div {
+      display: none;
+    }
+    .sidebar.collapsed .nav-item {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .sidebar.collapsed #chevron-icon {
+      transform: rotate(180deg);
+    }
+    .nav-active {
+      background-color: #6D28D9;
+      color: white !important;
+    }
+    .nav-active .nav-text {
+      color: white !important;
+    }
+    .nav-active svg {
+      stroke: white !important;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+
+<div class="flex min-h-screen">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col w-64">
+    <!-- Logo + Toggle -->
+    <div class="p-6 flex items-center justify-between">
+      <div id="logo-container" class="flex items-center justify-center flex-1">
+        <div class="text-2xl font-bold text-purple-600">ComplyAI</div>
+      </div>
+      <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg">
+        <svg id="chevron-icon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+      <!-- Dashboard -->
+     <a href="{% if role == 'admin' %}{{ url_for('dashboardAdmin') }}{% else %}{{ url_for('dashboard') }}{% endif %}"
+   id="navDashboard"
+   onclick="navigate(event, '{% if role == 'admin' %}dashboardAdmin{% else %}dashboard{% endif %}')"
+   class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+    </svg>
+    <span class="nav-text">Dashboard</span>
+</a>
+
+      <!-- Upload -->
+      <a href="{{ url_for('upload') }}" id="navUpload" class="nav-item nav-active flex items-center gap-3 px-4 py-3 rounded-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <span class="nav-text">Upload Document</span>
+      </a>
+
+      <!-- Calendar -->
+      <a href="{{ url_for('calendar') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <span class="nav-text">Calendar</span>
+      </a>
+
+      <!-- Documents -->
+      <a href="{{ url_for('documents') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 3h6l4 4v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v4h4"></path>
+        </svg>
+        <span class="nav-text">Documents</span>
+      </a>
+
+      <!-- Shared Documents -->
+      <a href="{{ url_for('shared_documents_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <span class="nav-text">Shared Documents</span>
+      </a>
+
+      <!-- Chat -->
+      <a href="{{ url_for('chat_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        <span class="nav-text">Chat</span>
+      </a>
+
+      <!-- General Settings -->
+      <div id="settings-section" class="pt-6 space-y-2">
+        <h3 class="settings-header px-4 text-sm font-semibold text-gray-900 mb-2">General Settings</h3>
+        <a href="{{ url_for('account') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <span class="nav-text">Account Settings</span>
+        </a>
+
+        {% if role == 'admin' %}
+        <a href="{{ url_for('management') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          <span class="nav-text">User Management</span>
+        </a>
+        {% endif %}
+
+        {% if role == 'admin' or role == 'owner' %}
+        <a href="{{ url_for('frameworks_ui') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v4a4 4 0 004 4h10a4 4 0 004-4V7M3 7a4 4 0 014-4h10a4 4 0 014 4M3 7h18"/>
+          </svg>
+          <span class="nav-text">Frameworks</span>
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('readme') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="nav-text">About ComplyAI</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Sign Out -->
+    <div class="p-4 border-t border-gray-200">
+      <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        <span class="nav-text">Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="flex-1 flex flex-col overflow-auto">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-8 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-900">Welcome Back, {{ full_name }}</h1>
+          <p class="text-sm text-gray-500">Track your progress with ease</p>
+        </div>
+      </div>
+    </header>
+
+<div class="flex-1 overflow-auto">
+<div class="max-w-4xl mx-auto p-8 space-y-8">
+
+<!-- ================= UPLOAD AREA ================= -->
+<div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+
+<!-- Gradient Header -->
+<div class="bg-gradient-to-r from-purple-600 to-purple-500 px-8 py-6">
+  <h2 class="text-2xl font-bold text-white">Upload Your Document</h2>
+  <p class="text-purple-100 text-sm mt-1">Fill in the document details below</p>
+</div>
+
+<div class="p-8">
+
+{% if previous_document %}
+<div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+  <p class="text-sm font-semibold text-amber-800">Updating Existing Document Version</p>
+  <p class="text-xs text-amber-700 mt-1">Previous Version ID: {{ previous_document.id }}. The previous version will be archived and marked inactive after you continue.</p>
+</div>
+{% endif %}
+
+<form method="POST" action="{{ url_for('upload') }}" class="space-y-6">
+
+<input type="hidden" name="previous_document_id" value="{{ previous_document.id if previous_document else '' }}">
+
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">
+Document Title
+</label>
+<input type="text" name="title" required value="{{ previous_document.documentTitle if previous_document else '' }}"
+class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition shadow-sm hover:shadow-md">
+</div>
+
+
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">
+Document Type
+</label>
+<select name="document_type" required
+class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition shadow-sm hover:shadow-md">
+<option value="">Select</option>
+<option value="policy" {% if previous_document and previous_document.documentType == 'policy' %}selected{% endif %}>Policy</option>
+<option value="procedure" {% if previous_document and previous_document.documentType == 'procedure' %}selected{% endif %}>Procedure</option>
+<option value="contract" {% if previous_document and previous_document.documentType == 'contract' %}selected{% endif %}>Contract</option>
+<option value="agreement" {% if previous_document and previous_document.documentType == 'agreement' %}selected{% endif %}>Agreement</option>
+<option value="other" {% if previous_document and previous_document.documentType == 'other' %}selected{% endif %}>Other</option>
+</select>
+</div>
+
+
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">
+Compliance Framework
+</label>
+<select name="framework" required
+class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition shadow-sm hover:shadow-md">
+<option value="">Select</option>
+<option value="NIST CSF" {% if previous_document and previous_document.complianceFramework == 'NIST CSF' %}selected{% endif %}>NIST CSF</option>
+
+</select>
+</div>
+
+
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">
+Due Date
+</label>
+<input type="date" name="due_date" required value="{{ previous_document.dueDate if previous_document else '' }}"
+class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition shadow-sm hover:shadow-md">
+</div>
+
+
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">
+Importance Level
+</label>
+<select name="importance" required
+class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition shadow-sm hover:shadow-md">
+<option value="">Select</option>
+<option value="critical" {% if previous_document and previous_document.importanceLevel == 'critical' %}selected{% endif %}>Critical</option>
+<option value="high" {% if previous_document and previous_document.importanceLevel == 'high' %}selected{% endif %}>High</option>
+<option value="medium" {% if previous_document and previous_document.importanceLevel == 'medium' %}selected{% endif %}>Medium</option>
+<option value="low" {% if previous_document and previous_document.importanceLevel == 'low' %}selected{% endif %}>Low</option>
+</select>
+</div>
+
+
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">
+Description
+</label>
+<textarea name="description" rows="4"
+class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition shadow-sm hover:shadow-md">{{ previous_document.description if previous_document else '' }}</textarea>
+</div>
+
+
+<!-- BUTTONS -->
+<div class="flex gap-4 pt-4">
+  <button type="submit"
+    class="flex-1 px-6 py-3 rounded-xl text-white font-semibold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 transition shadow-lg hover:shadow-xl">
+    Save Metadata & Continue
+  </button>
+  <button type="reset"
+    class="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition">
+    Reset
+  </button>
+</div>
+
+</form>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const SIDEBAR_STATE_KEY = 'complyai_sidebar_collapsed';
+
+function applySidebarState() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const isCollapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === '1';
+  sidebar.classList.toggle('collapsed', isCollapsed);
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const isCollapsed = !sidebar.classList.contains('collapsed');
+  sidebar.classList.toggle('collapsed', isCollapsed);
+  localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? '1' : '0');
+}
+
+document.addEventListener('DOMContentLoaded', applySidebarState);
+</script>
+
+</body>
+</html>

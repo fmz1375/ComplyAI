@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplyAI – Shared Section</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --primary: #5b2cff; --accent: #8b5cf6; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .sidebar { transition: width 0.3s ease; }
+    .sidebar.collapsed { width: 5rem; }
+    .sidebar.collapsed .nav-text,
+    .sidebar.collapsed .settings-header,
+    .sidebar.collapsed #logo-container > div { display: none; }
+    .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+    .sidebar.collapsed #chevron-icon { transform: rotate(180deg); }
+    .nav-active { background-color: #6D28D9; color: white !important; }
+    .nav-active .nav-text { color: white !important; }
+    .nav-active svg { stroke: white !important; }
+    .report-block { background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:24px; box-shadow:0 2px 8px rgba(91,44,255,.07); overflow:hidden; }
+    .report-block-header { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; padding:16px 22px; font-weight:700; font-size:1.05em; display:flex; justify-content:space-between; align-items:center; }
+    .report-block-body { padding:22px; font-size:.95em; line-height:1.7; }
+    .rpt-gap-card { background:#f8f5ff; border-left:5px solid var(--accent); padding:14px; margin-bottom:14px; border-radius:8px; }
+    .rpt-gap-card.critical { border-left-color:#dc2626; background:#fee2e2; }
+    .rpt-gap-card.high { border-left-color:#ea580c; background:#ffedd5; }
+    .rpt-gap-card.medium { border-left-color:#f59e0b; background:#fef3c7; }
+    .rpt-gap-card.low { border-left-color:#22c55e; background:#ecfdf5; }
+    .rpt-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:.8em; font-weight:700; color:#fff; margin-bottom:8px; }
+    .rpt-badge.critical { background:#dc2626; }
+    .rpt-badge.high { background:#ea580c; }
+    .rpt-badge.medium { background:#f59e0b; }
+    .rpt-badge.low { background:#22c55e; }
+    .metric-card { border-radius:8px; padding:14px; text-align:center; }
+    .metric-value { font-size:1.6em; font-weight:800; }
+    .metric-label { font-size:.8em; color:#6b7280; margin-top:4px; }
+    .risk-table { width:100%; border-collapse:collapse; font-size:.9em; }
+    .risk-table th { background:var(--primary); color:#fff; padding:10px 14px; text-align:left; }
+    .risk-table td { padding:10px 14px; border-bottom:1px solid #e5e7eb; vertical-align:top; }
+    .risk-table tr:nth-child(even) td { background:#f9fafb; }
+    .risk-level-pill { display:inline-block; padding:4px 12px; border-radius:999px; font-size:.82em; font-weight:700; color:#fff; }
+    .risk-level-pill.critical { background:#dc2626; }
+    .risk-level-pill.high { background:#ea580c; }
+    .risk-level-pill.medium { background:#f59e0b; }
+    .risk-level-pill.low { background:#22c55e; }
+    .heatmap-item { display:grid; grid-template-columns:1fr 80px 80px 100px; gap:8px; align-items:center; padding:12px 14px; border-radius:8px; color:#fff; font-weight:600; margin-bottom:8px; }
+    .heatmap-item.low { background:#22c55e; }
+    .heatmap-item.medium { background:#f59e0b; }
+    .heatmap-item.high { background:#ea580c; }
+    .heatmap-item.critical { background:#dc2626; }
+    .readonly-banner { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1.5px solid #22c55e; border-radius:10px; padding:12px 20px; display:flex; align-items:center; gap:10px; font-size:.9em; color:#15803d; font-weight:600; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <div class="flex h-screen">
+
+    {% if session.get('user_id') %}
+    <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col w-64">
+      <div class="p-6 flex items-center justify-between">
+        <div id="logo-container" class="flex items-center justify-center flex-1">
+          <div class="text-2xl font-bold text-purple-600">ComplyAI</div>
+        </div>
+        <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg">
+          <svg id="chevron-icon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+        <a href="{% if session.get('role') == 'admin' %}{{ url_for('dashboardAdmin') }}{% else %}{{ url_for('dashboard') }}{% endif %}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a href="{{ url_for('upload') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+          <span class="nav-text">Upload Document</span>
+        </a>
+        <a href="{{ url_for('calendar') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <span class="nav-text">Calendar</span>
+        </a>
+        <a href="{{ url_for('documents') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h6l4 4v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v4h4"></path></svg>
+          <span class="nav-text">Documents</span>
+        </a>
+        <a href="{{ url_for('shared_documents_page') }}" class="nav-item nav-active flex items-center gap-3 px-4 py-3 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          <span class="nav-text">Shared Documents</span>
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-gray-200">
+        <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+          <span class="nav-text">Sign Out</span>
+        </a>
+      </div>
+    </aside>
+    {% endif %}
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+  <!-- Header Bar -->
+  <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl font-bold text-purple-600">ComplyAI</span>
+      <span class="text-gray-400 text-lg">|</span>
+      <span class="text-gray-600 font-medium">Shared View</span>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+      </svg>
+      Read-Only Access
+    </div>
+  </header>
+
+  <main class="flex-1 overflow-y-auto">
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+
+    {% if error %}
+    <!-- Error State -->
+    <div class="bg-white rounded-2xl shadow-lg border border-red-200 p-12 text-center">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-gray-900 mb-2">Link Unavailable</h2>
+      <p class="text-gray-500">{{ error }}</p>
+    </div>
+
+    {% else %}
+
+    <!-- Document Title + Read-Only Banner -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 mb-1">
+        {{ doc.documentTitle or 'Compliance Assessment' }}
+      </h1>
+      <p class="text-sm text-gray-500 mb-4">Section shared: <strong class="text-purple-600">{{ section_name }}</strong>
+        {% if expires_at %} &middot; Expires: {{ expires_at }}{% endif %}
+      </p>
+      <div class="readonly-banner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+        </svg>
+        This is a view-only shared link. Editing is not permitted.
+      </div>
+    </div>
+
+    {% set report = section_data.report if section_data and section_data.report else None %}
+
+    <!-- ===== SECTION: Organization Info ===== -->
+    {% if section == 'org_info' %}
+    <div class="report-block">
+      <div class="report-block-header">🏢 Organization Info</div>
+      <div class="report-block-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div>
+            <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Organization</div>
+            <div style="font-weight:700;font-size:1.1em;">{{ (report.organization_name if report else doc.documentTitle) or 'N/A' }}</div>
+          </div>
+          <div>
+            <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Industry</div>
+            <div style="font-weight:600;">{{ (report.industry if report else doc.documentType) or 'N/A' }}</div>
+          </div>
+          <div>
+            <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Size</div>
+            <div>{{ (report.size if report else doc.importanceLevel) or 'N/A' }}</div>
+          </div>
+          <div>
+            <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Assessment Scope</div>
+            <div>{{ (report.scope if report else doc.description) or 'N/A' }}</div>
+          </div>
+          <div>
+            <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Framework</div>
+            <div>{{ doc.complianceFramework or 'N/A' }}</div>
+          </div>
+          <div>
+            <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Document Type</div>
+            <div>{{ doc.documentType or 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== SECTION: Risk Appetite ===== -->
+    {% if section == 'risk_appetite' %}
+    <div class="report-block">
+      <div class="report-block-header">🎯 Risk Appetite</div>
+      <div class="report-block-body">
+        {% if report and report.compliance_summary %}
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div class="metric-card" style="background:#f0fdf4;border:1px solid #22c55e40;">
+              <div class="metric-value" style="color:#22c55e;">{{ "%.1f"|format(report.compliance_summary.compliance_percentage|default(0)) }}%</div>
+              <div class="metric-label">Compliance Score</div>
+            </div>
+            <div class="metric-card" style="background:#fff7ed;border:1px solid #ea580c40;">
+              <div class="metric-value" style="color:#ea580c;">{{ report.compliance_summary.total_gaps|default(0) }}</div>
+              <div class="metric-label">Total Gaps Identified</div>
+            </div>
+            <div class="metric-card" style="background:#fef3c7;border:1px solid #f59e0b40;">
+              <div class="metric-value" style="color:#f59e0b;">{{ "%.1f"|format(report.compliance_summary.overall_risk_score|default(0)) }}/10</div>
+              <div class="metric-label">Overall Risk Score</div>
+            </div>
+            <div class="metric-card" style="background:#fee2e2;border:1px solid #dc262640;">
+              <div class="metric-value" style="color:#dc2626;">{{ report.compliance_summary.critical_findings|default(0) }}</div>
+              <div class="metric-label">Critical Findings</div>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-gray-500">No risk appetite data available for this document yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== SECTION: Questionnaire Responses ===== -->
+    {% if section == 'questionnaire' %}
+    <div class="report-block">
+      <div class="report-block-header">📋 Questionnaire Responses</div>
+      <div class="report-block-body">
+        {% if report and report.gap_analysis and report.gap_analysis|length > 0 %}
+          {% for gap in report.gap_analysis %}
+          {% set level = (gap.risk_level|default('low'))|lower %}
+          <div class="rpt-gap-card {{ level }}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+              <strong>{{ gap.control_id }}: {{ gap.control_title }}</strong>
+              <span class="rpt-badge {{ level }}">{{ gap.risk_level }}</span>
+            </div>
+            <div style="font-size:.85em;color:#6b7280;margin:4px 0 8px;">{{ gap.category|default('') }} → {{ gap.subcategory|default('') }}</div>
+            <div><strong>Description:</strong> {{ gap.description }}</div>
+            {% if gap.reasoning %}
+            <div style="margin-top:4px;"><strong>Reasoning:</strong> {{ gap.reasoning }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-gray-500">No questionnaire response data available yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== SECTION: Risk Heat Map ===== -->
+    {% if section == 'heatmap' %}
+    <div class="report-block">
+      <div class="report-block-header">🌡️ Risk Heat Map</div>
+      <div class="report-block-body">
+        {% if report and report.risk_heat_map %}
+          {% if report.risk_heat_map.visualization_path %}
+          {% set img_filename = report.risk_heat_map.visualization_path.replace('exports\\', '').replace('exports/', '') %}
+          <div style="margin-bottom:16px;">
+            <img src="/exports/{{ img_filename }}"
+                 alt="Risk Heat Map"
+                 style="max-width:100%;height:auto;border-radius:8px;"
+                 onerror="this.parentElement.style.display='none'">
+          </div>
+          {% endif %}
+
+          {% set items_above = report.risk_heat_map.items_above_appetite|default(0) %}
+          {% if items_above > 0 %}
+          <div style="background:#fee2e2;border:1px solid #dc2626;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#dc2626;font-weight:600;">
+            ⚠️ {{ items_above }} item(s) exceed organizational risk appetite
+          </div>
+          {% else %}
+          <div style="background:#ecfdf5;border:1px solid #22c55e;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#16a34a;font-weight:600;">
+            ✅ All items within organizational risk appetite
+          </div>
+          {% endif %}
+
+          {% if report.risk_heat_map.heat_map_items %}
+          <div style="display:grid;grid-template-columns:1fr 80px 80px 100px;gap:8px;padding:8px 14px;font-size:.82em;font-weight:700;color:#6b7280;text-transform:uppercase;">
+            <div>Item</div><div style="text-align:center;">Likelihood</div><div style="text-align:center;">Impact</div><div style="text-align:center;">Risk Level</div>
+          </div>
+          {% for hm in report.risk_heat_map.heat_map_items %}
+          {% set lvl = (hm.risk_level|default('low'))|lower %}
+          <div class="heatmap-item {{ lvl }}" title="{{ hm.reasoning|default('') }}">
+            <div>{{ hm.name }}{% if hm.above_appetite %}<span style="font-size:.75em;background:rgba(0,0,0,.2);padding:2px 6px;border-radius:4px;margin-left:8px;">⚠️ Above Appetite</span>{% endif %}</div>
+            <div style="text-align:center;opacity:.9;">{{ hm.likelihood }}/5</div>
+            <div style="text-align:center;opacity:.9;">{{ hm.impact }}/5</div>
+            <div style="text-align:center;opacity:.9;">{{ hm.risk_level }}</div>
+          </div>
+          {% endfor %}
+          {% endif %}
+        {% else %}
+          <p class="text-gray-500">No heat map data available for this document yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== SECTION: Final Report Preview ===== -->
+    {% if section == 'report' %}
+    {% if report %}
+      <!-- Compliance Summary -->
+      <div class="report-block">
+        <div class="report-block-header">📊 Compliance Summary</div>
+        <div class="report-block-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Organization</div>
+              <div style="font-weight:700;font-size:1.1em;">{{ report.organization_name or 'N/A' }}</div>
+            </div>
+            <div>
+              <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Industry</div>
+              <div style="font-weight:600;">{{ report.industry or 'N/A' }}</div>
+            </div>
+            <div>
+              <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Assessment Scope</div>
+              <div>{{ report.scope or 'N/A' }}</div>
+            </div>
+            <div>
+              <div style="font-size:.85em;color:#6b7280;margin-bottom:2px;">Size</div>
+              <div>{{ report.size or 'N/A' }}</div>
+            </div>
+          </div>
+          {% if report.compliance_summary %}
+          {% set cp = report.compliance_summary.compliance_percentage|default(0) %}
+          {% set cc = '#22c55e' if cp >= 70 else '#dc2626' %}
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px;">
+            <div class="metric-card" style="background:{{ cc }}15;border:1px solid {{ cc }}40;">
+              <div class="metric-value" style="color:{{ cc }};">{{ "%.1f"|format(cp) }}%</div>
+              <div class="metric-label">Compliance</div>
+            </div>
+            <div class="metric-card" style="background:#f59e0b15;border:1px solid #f59e0b40;">
+              <div class="metric-value" style="color:#f59e0b;">{{ "%.1f"|format(report.compliance_summary.overall_risk_score|default(0)) }}/10</div>
+              <div class="metric-label">Risk Score</div>
+            </div>
+            <div class="metric-card" style="background:#ea580c15;border:1px solid #ea580c40;">
+              <div class="metric-value" style="color:#ea580c;">{{ report.compliance_summary.total_gaps|default(0) }}</div>
+              <div class="metric-label">Total Gaps</div>
+            </div>
+            <div class="metric-card" style="background:#dc262615;border:1px solid #dc262640;">
+              <div class="metric-value" style="color:#dc2626;">{{ report.compliance_summary.critical_findings|default(0) }}</div>
+              <div class="metric-label">Critical Findings</div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Gap Analysis -->
+      {% if report.gap_analysis and report.gap_analysis|length > 0 %}
+      <div class="report-block">
+        <div class="report-block-header">🔍 Compliance Gap Analysis</div>
+        <div class="report-block-body">
+          {% for gap in report.gap_analysis %}
+          {% set level = (gap.risk_level|default('low'))|lower %}
+          <div class="rpt-gap-card {{ level }}">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <strong>{{ gap.control_id }}: {{ gap.control_title }}</strong>
+              <span class="rpt-badge {{ level }}">{{ gap.risk_level }}</span>
+            </div>
+            <div style="font-size:.85em;color:#6b7280;margin:4px 0 8px;">{{ gap.category|default('') }} → {{ gap.subcategory|default('') }}</div>
+            <div><strong>Description:</strong> {{ gap.description }}</div>
+            <div style="margin-top:4px;"><strong>Reasoning:</strong> {{ gap.reasoning }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Risk Assessment -->
+      {% if report.risk_assessment and report.risk_assessment|length > 0 %}
+      <div class="report-block">
+        <div class="report-block-header">⚠️ Risk Assessment</div>
+        <div class="report-block-body">
+          <table class="risk-table">
+            <thead>
+              <tr>
+                <th>Risk Item</th><th>Level</th><th>Likelihood</th><th>Impact</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for risk in report.risk_assessment %}
+              {% set lvl = (risk.risk_level|default('low'))|lower %}
+              <tr>
+                <td>
+                  <strong>{{ risk.title|default('Risk') }}</strong><br>
+                  <span style="font-size:.85em;color:#6b7280;">{{ risk.description|default('') }}</span>
+                </td>
+                <td><span class="risk-level-pill {{ lvl }}">{{ risk.risk_level|default('N/A') }}</span></td>
+                <td>{{ risk.likelihood|default('N/A') }}</td>
+                <td>{{ risk.impact|default('N/A') }}</td>
+                <td><span style="font-size:.82em;background:#f3f4f6;padding:3px 8px;border-radius:4px;">{{ risk.mitigation_status|default('Unmitigated') }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Recommendations -->
+      {% if report.recommendations and report.recommendations|length > 0 %}
+      <div class="report-block">
+        <div class="report-block-header">✅ Recommendations</div>
+        <div class="report-block-body">
+          {% set pc = {'High':'#dc2626','Medium':'#f59e0b','Low':'#22c55e'} %}
+          {% for priority in ['High','Medium','Low'] %}
+          {% set items = report.recommendations|selectattr('priority','equalto',priority)|list %}
+          {% if items %}
+          <div style="font-weight:700;color:{{ pc[priority] }};font-size:.95em;margin:16px 0 8px;text-transform:uppercase;letter-spacing:.05em;">{{ priority }} Priority</div>
+          {% for rec in items %}
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:10px;border-left:4px solid {{ pc[priority] }};">
+            <div style="font-weight:700;margin-bottom:4px;">{{ rec.title|default('Recommendation') }}</div>
+            <div style="font-size:.85em;color:#6b7280;margin-bottom:8px;">Estimated effort: {{ rec.estimated_effort|default('TBD') }}</div>
+            <div style="font-size:.9em;">{{ rec.description|default('') }}</div>
+          </div>
+          {% endfor %}
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    {% else %}
+      <div class="bg-white rounded-2xl shadow p-8 text-center text-gray-400">No report data is available for this document yet.</div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="mt-10 text-center text-xs text-gray-400 border-t border-gray-200 pt-6">
+      This is a read-only shared view generated by <strong class="text-purple-600">ComplyAI</strong>. All edits must be made by the document owner.
+    </div>
+
+    {% endif %}<!-- end error check -->
+  </div>
+  </main>
+
+  </div>
+</div>
+
+<script>
+const SIDEBAR_STATE_KEY = 'complyai_sidebar_collapsed';
+
+function applySidebarState() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const isCollapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === '1';
+  sidebar.classList.toggle('collapsed', isCollapsed);
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const isCollapsed = !sidebar.classList.contains('collapsed');
+  sidebar.classList.toggle('collapsed', isCollapsed);
+  localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? '1' : '0');
+}
+
+document.addEventListener('DOMContentLoaded', applySidebarState);
+</script>
+</body>
+</html>

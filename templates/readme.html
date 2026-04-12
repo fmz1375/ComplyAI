@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplyAI - About</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    .sidebar {
+      transition: width 0.3s ease;
+    }
+    .sidebar.collapsed {
+      width: 5rem;
+    }
+    .sidebar.collapsed .nav-text,
+    .sidebar.collapsed .settings-header,
+    .sidebar.collapsed #logo-container > div {
+      display: none;
+    }
+    .sidebar.collapsed .nav-item {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .sidebar.collapsed #chevron-icon {
+      transform: rotate(180deg);
+    }
+    .nav-active {
+      background-color: #6D28D9;
+      color: white !important;
+    }
+    .nav-active .nav-text {
+      color: white !important;
+    }
+    .nav-active svg {
+      stroke: white !important;
+    }
+    code { font-family: 'Consolas', 'Monaco', monospace; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<div class="flex h-screen">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col w-64">
+    <!-- Logo + Toggle -->
+    <div class="p-6 flex items-center justify-between">
+      <div id="logo-container" class="flex items-center justify-center flex-1">
+        <div class="text-2xl font-bold text-purple-600">ComplyAI</div>
+      </div>
+      <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg">
+        <svg id="chevron-icon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+      <!-- Dashboard -->
+      <a href="{% if role == 'admin' %}{{ url_for('dashboardAdmin') }}{% else %}{{ url_for('dashboard') }}{% endif %}"
+         class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+        <span class="nav-text">Dashboard</span>
+      </a>
+
+      <!-- Upload -->
+      <a href="{{ url_for('upload') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <span class="nav-text">Upload Document</span>
+      </a>
+
+      <!-- Calendar -->
+      <a href="{{ url_for('calendar') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <span class="nav-text">Calendar</span>
+      </a>
+
+      <!-- Documents -->
+      <a href="{{ url_for('documents') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 3h6l4 4v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v4h4"></path>
+        </svg>
+        <span class="nav-text">Documents</span>
+      </a>
+
+      <!-- Shared Documents -->
+      <a href="{{ url_for('shared_documents_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <span class="nav-text">Shared Documents</span>
+      </a>
+
+      <!-- Chat -->
+      <a href="{{ url_for('chat_page') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        <span class="nav-text">Chat</span>
+      </a>
+
+      <!-- General Settings -->
+      <div id="settings-section" class="pt-6 space-y-2">
+        <h3 class="settings-header px-4 text-sm font-semibold text-gray-900 mb-2">General Settings</h3>
+
+        <a href="{{ url_for('account') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <span class="nav-text">Account Settings</span>
+        </a>
+
+        {% if role == 'admin' %}
+        <a href="{{ url_for('management') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          <span class="nav-text">User Management</span>
+        </a>
+        {% endif %}
+
+        {% if role == 'admin' or role == 'owner' %}
+        <a href="{{ url_for('frameworks_ui') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v4a4 4 0 004 4h10a4 4 0 004-4V7M3 7a4 4 0 014-4h10a4 4 0 014 4M3 7h18"/>
+          </svg>
+          <span class="nav-text">Frameworks</span>
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('readme') }}" class="nav-item nav-active flex items-center gap-3 px-4 py-3 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="nav-text">About ComplyAI</span>
+        </a>
+
+      </div>
+    </nav>
+
+    <!-- Sign Out -->
+    <div class="p-4 border-t border-gray-200">
+      <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        <span class="nav-text">Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-8 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-900">About ComplyAI</h1>
+          <p class="text-sm text-gray-500">Documentation & Reference Guide</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-gradient-to-br from-purple-50 to-blue-50 p-8">
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- Hero Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-4">
+              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">ComplyAI</h1>
+            <p class="text-xl text-gray-600">A NIST CSF Cybersecurity Compliance Assessment Platform with AI-Powered Analysis</p>
+          </div>
+          <p class="text-gray-600 text-center max-w-2xl mx-auto">
+            A comprehensive Flask-based web application for automated NIST Cybersecurity Framework (CSF) compliance analysis, document management, and risk assessment using Advanced RAG (Retrieval-Augmented Generation) technology.
+          </p>
+        </div>
+
+        <!-- Quick Start Guide Section -->
+        <section id="quick-start" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">Quick Start Guide (For Professors / Evaluators)</h2>
+          </div>
+
+          <!-- Prerequisites -->
+          <div class="mb-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+            <h3 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              Prerequisites
+            </h3>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li>• <strong>Python 3.10+</strong> installed</li>
+              <li>• <strong>Ollama</strong> installed and running (<a href="https://ollama.com" class="text-purple-600 hover:underline">https://ollama.com</a>)</li>
+              <li>• Git (for cloning the repository)</li>
+            </ul>
+          </div>
+
+          <!-- Installation Steps -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              Installation Steps
+            </h3>
+            <div class="space-y-3">
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                  <h4 class="font-medium text-gray-900 text-sm">Clone the repository</h4>
+                </div>
+                <pre class="bg-gray-900 text-green-400 p-2 rounded text-xs overflow-x-auto">git clone https://github.com/YOUR_USERNAME/complyai.git
+cd complyai</pre>
+              </div>
+
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                  <h4 class="font-medium text-gray-900 text-sm">Create and activate a virtual environment</h4>
+                </div>
+                <pre class="bg-gray-900 text-green-400 p-2 rounded text-xs overflow-x-auto"># Windows
+python -m venv .venv
+.venv\Scripts\activate
+
+# macOS/Linux
+python3 -m venv .venv
+source .venv/bin/activate</pre>
+              </div>
+
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                  <h4 class="font-medium text-gray-900 text-sm">Install Python dependencies</h4>
+                </div>
+                <pre class="bg-gray-900 text-green-400 p-2 rounded text-xs overflow-x-auto">pip install -r requirements.txt</pre>
+              </div>
+
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                  <h4 class="font-medium text-gray-900 text-sm">Pull required Ollama models</h4>
+                </div>
+                <p class="text-xs text-gray-600 mb-2">Run these commands in a separate terminal:</p>
+                <pre class="bg-gray-900 text-green-400 p-2 rounded text-xs overflow-x-auto">ollama pull qwen2.5:3b
+ollama pull saki007ster/CybersecurityRiskAnalyst</pre>
+              </div>
+
+              <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">5</span>
+                  <h4 class="font-medium text-gray-900 text-sm">Start the application</h4>
+                </div>
+                <pre class="bg-gray-900 text-green-400 p-2 rounded text-xs overflow-x-auto">python appOne.py</pre>
+              </div>
+
+              <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">6</span>
+                  <h4 class="font-medium text-gray-900 text-sm">Open your browser and navigate to:</h4>
+                </div>
+                <code class="bg-white px-3 py-2 rounded text-sm block text-center font-mono text-purple-600">http://127.0.0.1:5005</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Default Login Credentials -->
+          <div class="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+              </svg>
+              Default Login Credentials
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-purple-100">
+                    <th class="px-4 py-2 text-left font-semibold text-gray-900">Role</th>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-900">Email</th>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-900">Password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="px-4 py-2 font-medium text-gray-900">Admin</td>
+                    <td class="px-4 py-2 text-gray-600"><code class="bg-white px-2 py-1 rounded">admin@example.com</code></td>
+                    <td class="px-4 py-2 text-gray-600"><code class="bg-white px-2 py-1 rounded">admin123</code></td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-2 font-medium text-gray-900">User</td>
+                    <td class="px-4 py-2 text-gray-600"><code class="bg-white px-2 py-1 rounded">bob@example.com</code></td>
+                    <td class="px-4 py-2 text-gray-600"><code class="bg-white px-2 py-1 rounded">bob123</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-4 grid md:grid-cols-2 gap-3">
+              <div class="p-3 bg-purple-100 rounded-lg">
+                <h4 class="font-medium text-purple-800 text-sm mb-2">Admin can do everything User can, plus:</h4>
+                <ul class="text-xs text-purple-700 space-y-1">
+                  <li>• View all users' documents</li>
+                  <li>• Review and approve/reject documents</li>
+                  <li>• Manage users (add/delete)</li>
+                  <li>• Framework management</li>
+                  <li>• Access admin dashboard</li>
+                </ul>
+              </div>
+              <div class="p-3 bg-blue-100 rounded-lg">
+                <h4 class="font-medium text-blue-800 text-sm mb-2">User capabilities:</h4>
+                <ul class="text-xs text-blue-700 space-y-1">
+                  <li>• Upload and manage own documents</li>
+                  <li>• Run compliance analysis</li>
+                  <li>• Generate reports (PDF/Word)</li>
+                  <li>• Use calendar, notes, and chat</li>
+                  <li>• Access shared documents</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Features to Test -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Key Features to Test
+            </h3>
+            <div class="space-y-3">
+              <!-- Feature 1: Upload -->
+              <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                  <span class="font-semibold text-gray-900">Upload a Policy Document</span>
+                </div>
+                <ul class="text-sm text-gray-600 space-y-1 ml-8">
+                  <li>• Navigate to "Upload Document" from the sidebar</li>
+                  <li>• Select a PDF security policy (e.g., Information Security Policy)</li>
+                  <li>• Fill in metadata: name, category, priority, due date</li>
+                  <li>• System extracts text and prepares for AI analysis</li>
+                </ul>
+              </div>
+              <!-- Feature 2: Analysis -->
+              <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                  <span class="font-semibold text-gray-900">Run Compliance Analysis</span>
+                </div>
+                <ul class="text-sm text-gray-600 space-y-1 ml-8">
+                  <li>• Click "Analyze" to start AI-powered gap detection</li>
+                  <li>• Watch real-time progress as the system processes</li>
+                  <li>• Uses Advanced RAG with FAISS + BM25 hybrid retrieval</li>
+                  <li>• Review gaps with severity ratings (Critical, High, Medium, Low)</li>
+                  <li>• Provide feedback to improve future accuracy</li>
+                </ul>
+              </div>
+              <!-- Feature 3: Questionnaire -->
+              <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                  <span class="font-semibold text-gray-900">Complete NIST CSF Questionnaire</span>
+                </div>
+                <ul class="text-sm text-gray-600 space-y-1 ml-8">
+                  <li>• Choose NIST CSF functions: Govern, Identify, Protect, Detect, Respond, Recover</li>
+                  <li>• Answer structured questions about your security posture</li>
+                  <li>• Multiple question types: multiple choice, yes/no, scale, text</li>
+                  <li>• Progress is saved automatically</li>
+                </ul>
+              </div>
+              <!-- Feature 4: Reports -->
+              <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
+                  <span class="font-semibold text-gray-900">Generate Reports</span>
+                </div>
+                <ul class="text-sm text-gray-600 space-y-1 ml-8">
+                  <li>• Choose export format: PDF or Word (DOCX)</li>
+                  <li>• Includes: executive summary, compliance gaps, risk assessment</li>
+                  <li>• Edit report content before finalizing</li>
+                  <li>• Share with team or download for offline use</li>
+                </ul>
+              </div>
+              <!-- Feature 5: Heat Map -->
+              <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">5</span>
+                  <span class="font-semibold text-gray-900">Risk Heat Map</span>
+                </div>
+                <ul class="text-sm text-gray-600 space-y-1 ml-8">
+                  <li>• Complete Risk Appetite questionnaire for tolerance levels</li>
+                  <li>• View 5x5 matrix: likelihood vs. impact for each risk</li>
+                  <li>• Items exceeding risk appetite are highlighted</li>
+                  <li>• Download heat map as PNG for presentations</li>
+                </ul>
+              </div>
+              <!-- Feature 6: Collaboration -->
+              <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">6</span>
+                  <span class="font-semibold text-gray-900">Real-time Collaboration</span>
+                </div>
+                <ul class="text-sm text-gray-600 space-y-1 ml-8">
+                  <li>• Share documents via email invitation or shareable link</li>
+                  <li>• Set permissions: view-only, comment, or full edit</li>
+                  <li>• Real-time chat within document assessment rooms</li>
+                  <li>• Direct messaging (DM) for private conversations</li>
+                  <li>• See who's online and typing indicators</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Security Features Section -->
+        <section id="security" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">Security Features</h2>
+          </div>
+
+          <p class="text-gray-600 mb-6">ComplyAI implements comprehensive security hardening to protect against common attack vectors:</p>
+
+          <!-- Attack Prevention Table -->
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gradient-to-r from-red-600 to-red-700 text-white">
+                  <th class="px-4 py-3 text-left font-semibold rounded-tl-lg">Attack Type</th>
+                  <th class="px-4 py-3 text-left font-semibold">Protection Method</th>
+                  <th class="px-4 py-3 text-left font-semibold rounded-tr-lg">Implementation</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">SQL Injection</td>
+                  <td class="px-4 py-3 text-gray-600">Parameterized queries + table whitelist</td>
+                  <td class="px-4 py-3"><code class="bg-gray-100 px-2 py-1 rounded text-xs">security_utils.SQLInjectionDefense</code></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">Prompt Injection</td>
+                  <td class="px-4 py-3 text-gray-600">Input sanitization + pattern detection</td>
+                  <td class="px-4 py-3"><code class="bg-gray-100 px-2 py-1 rounded text-xs">security_utils.PromptInjectionDefense</code></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">Buffer Overflow</td>
+                  <td class="px-4 py-3 text-gray-600">Input length limits (5000 chars max)</td>
+                  <td class="px-4 py-3"><code class="bg-gray-100 px-2 py-1 rounded text-xs">security_utils.InputValidation</code></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">SSRF</td>
+                  <td class="px-4 py-3 text-gray-600">URL validation + private IP blocking</td>
+                  <td class="px-4 py-3"><code class="bg-gray-100 px-2 py-1 rounded text-xs">InputValidation.validate_url()</code></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">XSS</td>
+                  <td class="px-4 py-3 text-gray-600">Jinja2 auto-escaping</td>
+                  <td class="px-4 py-3"><code class="bg-gray-100 px-2 py-1 rounded text-xs">Flask templates</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Protected Components -->
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="p-4 bg-red-50 rounded-xl border border-red-200">
+              <h3 class="font-semibold text-gray-900 mb-3">Protected Components</h3>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  LLM Service - All inputs sanitized
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Context Builder - Pattern detection
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  RAG Chatbot - Query sanitization
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Database - Parameterized queries
+                </li>
+              </ul>
+            </div>
+            <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <h3 class="font-semibold text-gray-900 mb-3">Password Security</h3>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Werkzeug password hashing
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Secure Flask sessions
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Optional Auth0 SSO integration
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">Features</h2>
+          </div>
+
+          <!-- Core Functionality -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+              </svg>
+              Core Functionality
+            </h3>
+            <div class="grid gap-3">
+              <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">PDF Policy Analysis</span>
+                  <p class="text-sm text-gray-600">Upload policy documents for automated NIST CSF compliance gap analysis</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Advanced RAG Engine</span>
+                  <p class="text-sm text-gray-600">Hybrid retrieval combining FAISS (dense vectors) + BM25 (keyword matching)</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Real-time Progress Tracking</span>
+                  <p class="text-sm text-gray-600">Live updates during document analysis with progress bars</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Risk Assessment</span>
+                  <p class="text-sm text-gray-600">Automated risk scoring and categorization (Low, Medium, High, Critical)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard & User Management -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+              </svg>
+              Dashboard & User Management
+            </h3>
+            <div class="grid gap-3">
+              <div class="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                <svg class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Role-based Access Control</span>
+                  <p class="text-sm text-gray-600">Admin and User roles with different permissions</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                <svg class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Dashboard Analytics</span>
+                  <p class="text-sm text-gray-600">Document counts, compliance status, critical documents tracking</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                <svg class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Notifications System</span>
+                  <p class="text-sm text-gray-600">Real-time alerts for document status changes and new users</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calendar & Notes -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              Calendar & Notes
+            </h3>
+            <div class="grid gap-3">
+              <div class="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Calendar View</span>
+                  <p class="text-sm text-gray-600">FullCalendar integration showing document due dates</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Personal Notes</span>
+                  <p class="text-sm text-gray-600">Create, edit, and delete notes for any date with hover tooltips</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Risk Heat Map -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+              </svg>
+              Risk Heat Map
+            </h3>
+            <div class="grid gap-3">
+              <div class="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
+                <svg class="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Visual Risk Matrix</span>
+                  <p class="text-sm text-gray-600">5x5 likelihood vs impact heat map with risk appetite comparison</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
+                <svg class="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Downloadable Visualizations</span>
+                  <p class="text-sm text-gray-600">Export heat map as PNG image</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Chatbot -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              AI Chatbot
+            </h3>
+            <div class="grid gap-3">
+              <div class="flex items-start gap-3 p-3 bg-pink-50 rounded-lg">
+                <svg class="w-5 h-5 text-pink-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Audit Agent Chat</span>
+                  <p class="text-sm text-gray-600">Contextual RAG chatbot with Validator, Remediation Coach, and Cross-Document Expert modes</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-pink-50 rounded-lg">
+                <svg class="w-5 h-5 text-pink-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Conversation Memory</span>
+                  <p class="text-sm text-gray-600">Maintains chat history for follow-up questions</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collaboration & DM -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              Collaboration & Direct Messaging
+            </h3>
+            <div class="grid gap-3">
+              <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                <svg class="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Real-time Room Chat</span>
+                  <p class="text-sm text-gray-600">Assessment room messaging with Socket.IO for live collaboration</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                <svg class="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Direct Messaging</span>
+                  <p class="text-sm text-gray-600">Private user-to-user messaging with read status and typing indicators</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                <svg class="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Shared Documents</span>
+                  <p class="text-sm text-gray-600">Document sharing via link sharing and collaborator invitations</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Framework Management -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+              Framework Management
+            </h3>
+            <div class="grid gap-3">
+              <div class="flex items-start gap-3 p-3 bg-cyan-50 rounded-lg">
+                <svg class="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Version Control</span>
+                  <p class="text-sm text-gray-600">Framework versioning with status tracking (processing/ready)</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-cyan-50 rounded-lg">
+                <svg class="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Dynamic FAISS Index</span>
+                  <p class="text-sm text-gray-600">Atomic activation with versioned vector store switching</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 bg-cyan-50 rounded-lg">
+                <svg class="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <div>
+                  <span class="font-medium text-gray-900">Source Ingestion</span>
+                  <p class="text-sm text-gray-600">Upload PDF/JSON frameworks or import via URL</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tech Stack Section -->
+        <section id="tech-stack" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">Tech Stack</h2>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- Backend -->
+            <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+              <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+                </svg>
+                Backend
+              </h3>
+              <ul class="space-y-2 text-sm">
+                <li><code class="bg-white px-2 py-1 rounded">Flask</code> - Web framework</li>
+                <li><code class="bg-white px-2 py-1 rounded">Flask-SocketIO</code> - Real-time WebSocket communication</li>
+                <li><code class="bg-white px-2 py-1 rounded">SQLite</code> - Database (project.db)</li>
+                <li><code class="bg-white px-2 py-1 rounded">Flask-CORS</code> - Cross-origin resource sharing</li>
+              </ul>
+            </div>
+
+            <!-- AI/ML -->
+            <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+              <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                AI/ML
+              </h3>
+              <ul class="space-y-2 text-sm">
+                <li><code class="bg-white px-2 py-1 rounded">LangChain</code> - LLM orchestration</li>
+                <li><code class="bg-white px-2 py-1 rounded">Ollama</code> - Local LLM (qwen2.5:3b)</li>
+                <li><code class="bg-white px-2 py-1 rounded">FAISS</code> - Vector similarity search</li>
+                <li><code class="bg-white px-2 py-1 rounded">BM25</code> - Keyword-based retrieval</li>
+              </ul>
+            </div>
+
+            <!-- Document Processing -->
+            <div class="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+              <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Document Processing
+              </h3>
+              <ul class="space-y-2 text-sm">
+                <li><code class="bg-white px-2 py-1 rounded">PyPDF</code> - PDF text extraction</li>
+                <li><code class="bg-white px-2 py-1 rounded">ReportLab</code> - PDF report generation</li>
+                <li><code class="bg-white px-2 py-1 rounded">python-docx</code> - Word document export</li>
+              </ul>
+            </div>
+
+            <!-- Frontend -->
+            <div class="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+              <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                </svg>
+                Frontend
+              </h3>
+              <ul class="space-y-2 text-sm">
+                <li><code class="bg-white px-2 py-1 rounded">Tailwind CSS</code> - Styling framework</li>
+                <li><code class="bg-white px-2 py-1 rounded">FullCalendar</code> - Calendar component</li>
+                <li><code class="bg-white px-2 py-1 rounded">Jinja2</code> - Template engine</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Project Structure Section -->
+        <section id="project-structure" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">Project Structure</h2>
+          </div>
+
+          <pre class="bg-gray-900 text-gray-300 p-4 rounded-xl text-sm overflow-x-auto">
+complyai/
+├── appOne.py              <span class="text-green-400"># Main Flask application (entry point)</span>
+├── requirements.txt       <span class="text-green-400"># Python dependencies</span>
+├── project.db            <span class="text-green-400"># SQLite database (auto-created)</span>
+├── templates/            <span class="text-green-400"># HTML templates (Jinja2)</span>
+├── services/             <span class="text-green-400"># Business logic services</span>
+│   ├── llm_service.py           <span class="text-green-400"># LLM integration</span>
+│   ├── questionnaire_engine.py  <span class="text-green-400"># NIST questionnaire logic</span>
+│   ├── report_exporter.py       <span class="text-green-400"># PDF/Word export</span>
+│   └── risk_heatmap_service.py  <span class="text-green-400"># Risk visualization</span>
+├── rag/                  <span class="text-green-400"># RAG (Retrieval-Augmented Generation)</span>
+│   └── advanced_rag.py          <span class="text-green-400"># Hybrid retrieval + gap analysis</span>
+├── models/               <span class="text-green-400"># Pydantic data models</span>
+├── faiss_index/          <span class="text-green-400"># Vector store indexes</span>
+├── uploads/              <span class="text-green-400"># Uploaded documents</span>
+└── exports/              <span class="text-green-400"># Generated reports and artifacts</span>
+</pre>
+        </section>
+
+        <!-- Database Section -->
+        <section id="database" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">Database Schema</h2>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+                  <th class="px-4 py-3 text-left font-semibold rounded-tl-lg">Table</th>
+                  <th class="px-4 py-3 text-left font-semibold rounded-tr-lg">Description</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">users</td><td class="px-4 py-3 text-gray-600">User accounts (id, username, full_name, email, password, role)</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">documents</td><td class="px-4 py-3 text-gray-600">Uploaded documents with metadata</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">compliance_results</td><td class="px-4 py-3 text-gray-600">Analysis results JSON</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">report</td><td class="px-4 py-3 text-gray-600">Generated reports with gap analysis</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">notifications</td><td class="px-4 py-3 text-gray-600">User notifications</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">notes</td><td class="px-4 py-3 text-gray-600">Calendar notes</td></tr>
+              </tbody>
+            </table>
+
+            <!-- Collaboration Tables -->
+            <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3">Collaboration & Sharing</h3>
+            <table class="w-full text-sm">
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">collaborators</td><td class="px-4 py-3 text-gray-600">Document collaboration relationships</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">share_links</td><td class="px-4 py-3 text-gray-600">Share link tokens and permissions</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">chat_messages</td><td class="px-4 py-3 text-gray-600">Assessment room chat messages</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">assessment_participants</td><td class="px-4 py-3 text-gray-600">Participant management and presence</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">direct_messages</td><td class="px-4 py-3 text-gray-600">Private user-to-user messages</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">dm_conversations</td><td class="px-4 py-3 text-gray-600">DM conversation summaries</td></tr>
+              </tbody>
+            </table>
+
+            <!-- Framework Tables -->
+            <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3">Framework Management</h3>
+            <table class="w-full text-sm">
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">framework_config</td><td class="px-4 py-3 text-gray-600">Active framework configuration</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">framework_versions</td><td class="px-4 py-3 text-gray-600">Framework version history and status</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">framework_audit_log</td><td class="px-4 py-3 text-gray-600">Framework change audit trail</td></tr>
+              </tbody>
+            </table>
+
+            <!-- Feedback Tables -->
+            <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3">Feedback & Tuning</h3>
+            <table class="w-full text-sm">
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">finding_feedback</td><td class="px-4 py-3 text-gray-600">User feedback on findings</td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">gap_feedback</td><td class="px-4 py-3 text-gray-600">Dismissed gap embeddings for false-positive suppression</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- User Roles Section -->
+        <section id="user-roles" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">User Roles</h2>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Admin -->
+            <div class="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">Admin</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  View all users' documents
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Review and approve/reject documents
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Manage users (add/delete)
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Framework management
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Access admin dashboard
+                </li>
+              </ul>
+            </div>
+
+            <!-- Owner -->
+            <div class="p-6 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border-2 border-amber-200">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-amber-600 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">Owner</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Upload and manage documents
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Framework management access
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  View compliance reports
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Share documents with team
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Use collaboration features
+                </li>
+              </ul>
+            </div>
+
+            <!-- User -->
+            <div class="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">User</h3>
+              </div>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Upload and manage own documents
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  View compliance reports
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Use calendar and notes
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Update account settings
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Access shared documents
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- NIST Functions Section -->
+        <section id="nist-functions" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">NIST CSF Functions</h2>
+          </div>
+
+          <p class="text-gray-600 mb-6">The platform supports all six NIST CSF 2.0 functions:</p>
+
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 bg-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">GV</span>
+                <h4 class="font-semibold text-gray-900">Govern</h4>
+              </div>
+              <p class="text-sm text-gray-600">Organizational context, risk management strategy</p>
+            </div>
+
+            <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">ID</span>
+                <h4 class="font-semibold text-gray-900">Identify</h4>
+              </div>
+              <p class="text-sm text-gray-600">Asset management, risk assessment</p>
+            </div>
+
+            <div class="p-4 bg-green-50 rounded-xl border border-green-200">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 bg-green-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">PR</span>
+                <h4 class="font-semibold text-gray-900">Protect</h4>
+              </div>
+              <p class="text-sm text-gray-600">Access control, awareness training, data security</p>
+            </div>
+
+            <div class="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 bg-yellow-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">DE</span>
+                <h4 class="font-semibold text-gray-900">Detect</h4>
+              </div>
+              <p class="text-sm text-gray-600">Anomalies, continuous monitoring</p>
+            </div>
+
+            <div class="p-4 bg-orange-50 rounded-xl border border-orange-200">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 bg-orange-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">RS</span>
+                <h4 class="font-semibold text-gray-900">Respond</h4>
+              </div>
+              <p class="text-sm text-gray-600">Incident response, communications</p>
+            </div>
+
+            <div class="p-4 bg-red-50 rounded-xl border border-red-200">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-8 h-8 bg-red-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">RC</span>
+                <h4 class="font-semibold text-gray-900">Recover</h4>
+              </div>
+              <p class="text-sm text-gray-600">Recovery planning, improvements</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- API Surface Section -->
+        <section id="api-surface" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">API Surface</h2>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- REST APIs -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-gray-900">REST Endpoints</h3>
+              
+              <div class="p-3 bg-blue-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Document & Analysis</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li><code class="bg-white px-1 rounded">POST /upload</code> - Upload document</li>
+                  <li><code class="bg-white px-1 rounded">POST /analyze</code> - Start analysis</li>
+                  <li><code class="bg-white px-1 rounded">GET /progress</code> - Check progress</li>
+                </ul>
+              </div>
+
+              <div class="p-3 bg-purple-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Questionnaire & Reports</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li><code class="bg-white px-1 rounded">GET /api/nist-functions</code></li>
+                  <li><code class="bg-white px-1 rounded">POST /api/generate-questions</code></li>
+                  <li><code class="bg-white px-1 rounded">POST /api/submit-answers</code></li>
+                  <li><code class="bg-white px-1 rounded">GET /api/reports/:id</code></li>
+                </ul>
+              </div>
+
+              <div class="p-3 bg-orange-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Risk Heat Map</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li><code class="bg-white px-1 rounded">POST /api/submit-risk-appetite</code></li>
+                  <li><code class="bg-white px-1 rounded">POST /api/generate-heatmap</code></li>
+                  <li><code class="bg-white px-1 rounded">GET /api/heatmap-report/:id</code></li>
+                </ul>
+              </div>
+
+              <div class="p-3 bg-cyan-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Framework Management</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li><code class="bg-white px-1 rounded">GET /api/framework/status</code></li>
+                  <li><code class="bg-white px-1 rounded">POST /api/framework/upload</code></li>
+                  <li><code class="bg-white px-1 rounded">POST /api/framework/activate</code></li>
+                  <li><code class="bg-white px-1 rounded">GET /api/framework/versions</code></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Socket.IO Events -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-gray-900">Socket.IO Events</h3>
+              
+              <div class="p-3 bg-indigo-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Room Collaboration</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li><code class="bg-white px-1 rounded">join_session</code> - Join assessment room</li>
+                  <li><code class="bg-white px-1 rounded">send_message</code> - Send chat message</li>
+                  <li><code class="bg-white px-1 rounded">typing</code> - Typing indicator</li>
+                  <li><code class="bg-white px-1 rounded">mark_read</code> - Mark messages read</li>
+                </ul>
+              </div>
+
+              <div class="p-3 bg-pink-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Direct Messaging</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li><code class="bg-white px-1 rounded">dm_connect</code> - Connect to DM</li>
+                  <li><code class="bg-white px-1 rounded">dm_send_message</code> - Send private message</li>
+                  <li><code class="bg-white px-1 rounded">dm_typing</code> - Typing indicator</li>
+                  <li><code class="bg-white px-1 rounded">dm_stop_typing</code> - Stop typing</li>
+                </ul>
+              </div>
+
+              <div class="p-3 bg-green-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">DM REST Endpoints</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                  <li><code class="bg-white px-1 rounded">GET /api/dm/users</code></li>
+                  <li><code class="bg-white px-1 rounded">GET /api/dm/conversations</code></li>
+                  <li><code class="bg-white px-1 rounded">GET /api/dm/messages/:id</code></li>
+                  <li><code class="bg-white px-1 rounded">POST /api/dm/messages</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Troubleshooting Section -->
+        <section id="troubleshooting" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 m-0">Troubleshooting</h2>
+          </div>
+
+          <div class="space-y-4">
+            <div class="p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-xl border-l-4 border-red-500">
+              <h3 class="font-semibold text-gray-900 mb-2">"Ollama not available" warning</h3>
+              <p class="text-sm text-gray-700">Make sure Ollama is running: <code class="bg-white px-2 py-1 rounded">ollama serve</code></p>
+            </div>
+
+            <div class="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl border-l-4 border-yellow-500">
+              <h3 class="font-semibold text-gray-900 mb-2">Port already in use</h3>
+              <p class="text-sm text-gray-700">Change the port in <code class="bg-white px-2 py-1 rounded">appOne.py</code> or kill the existing process</p>
+            </div>
+
+            <div class="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border-l-4 border-blue-500">
+              <h3 class="font-semibold text-gray-900 mb-2">Missing dependencies</h3>
+              <p class="text-sm text-gray-700">Run <code class="bg-white px-2 py-1 rounded">pip install -r requirements.txt</code> again</p>
+            </div>
+
+            <div class="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border-l-4 border-purple-500">
+              <h3 class="font-semibold text-gray-900 mb-2">FAISS index not found</h3>
+              <p class="text-sm text-gray-700">Run <code class="bg-white px-2 py-1 rounded">python nist_embedding.py</code> to rebuild the index</p>
+            </div>
+
+            <div class="p-4 bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-xl border-l-4 border-cyan-500">
+              <h3 class="font-semibold text-gray-900 mb-2">Database errors</h3>
+              <p class="text-sm text-gray-700">Delete <code class="bg-white px-2 py-1 rounded">project.db</code> and restart the application to recreate</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <div class="text-center text-gray-500 text-sm py-8">
+          <p>ComplyAI - NIST CSF Compliance Management Platform</p>
+          <p class="mt-1">This project is for educational and demonstration purposes.</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const SIDEBAR_STATE_KEY = 'complyai_sidebar_collapsed';
+
+function applySidebarState() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const isCollapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === '1';
+  sidebar.classList.toggle('collapsed', isCollapsed);
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const isCollapsed = !sidebar.classList.contains('collapsed');
+  sidebar.classList.toggle('collapsed', isCollapsed);
+  localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? '1' : '0');
+}
+
+document.addEventListener('DOMContentLoaded', applySidebarState);
+</script>
+
+</body>
+</html>
