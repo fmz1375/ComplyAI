@@ -4,7 +4,7 @@ A NIST CSF Cybersecurity Compliance Assessment Platform with AI-Powered Analysis
 
 ---
 
-## Quick Start Guide (For Professors / Evaluators)
+## Quick Start Guide 
 
 ### Prerequisites
 
