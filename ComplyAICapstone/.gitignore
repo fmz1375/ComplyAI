@@ -12,5 +12,4 @@ venv/
 .vscode/
 
 # Local runtime artifacts
-exports/
 uploads/framework_tmp/
